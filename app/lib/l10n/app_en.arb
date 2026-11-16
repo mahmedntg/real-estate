@@ -1,0 +1,257 @@
+{
+  "@@locale": "en",
+  "appName": "Aqar",
+  "tagline": "Find your next home",
+  "navHome": "Home",
+  "navFavorites": "Favorites",
+  "navChats": "Chats",
+  "navProfile": "Profile",
+  "searchHint": "Search by area, title, or keyword",
+  "filters": "Filters",
+  "filtersTitle": "Filters",
+  "sortLabel": "Sort by",
+  "sortNewest": "Newest",
+  "sortPriceAsc": "Price: low to high",
+  "sortPriceDesc": "Price: high to low",
+  "propertyType": "Property type",
+  "listingType": "Listing type",
+  "governorate": "Governorate",
+  "area": "Area",
+  "country": "Country",
+  "minPrice": "Min price",
+  "maxPrice": "Max price",
+  "bedrooms": "Bedrooms",
+  "bathrooms": "Bathrooms",
+  "furnishedOnly": "Furnished only",
+  "any": "Any",
+  "anyArea": "Any area",
+  "apply": "Apply",
+  "reset": "Reset",
+  "close": "Close",
+  "cancel": "Cancel",
+  "save": "Save",
+  "delete": "Delete",
+  "edit": "Edit",
+  "retry": "Try again",
+  "loading": "Loading…",
+  "somethingWentWrong": "Something went wrong. Please try again.",
+  "networkError": "Cannot reach the server. Check your connection.",
+  "requiredField": "This field is required",
+  "invalidEmail": "Enter a valid email",
+  "passwordTooShort": "Use at least 8 characters",
+  "invalidNumber": "Enter a valid number",
+  "positiveNumber": "Enter a value greater than zero",
+  "propertiesCount": "{count, plural, =0{No properties} =1{1 property} other{{count} properties}}",
+  "@propertiesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noResultsTitle": "No properties found",
+  "noResultsBody": "Try changing your filters or search terms.",
+  "favoritesEmpty": "No favorites yet",
+  "favoritesEmptyBody": "Tap the heart on a listing to save it here.",
+  "myListingsEmpty": "You have not listed any properties yet.",
+  "chatsEmpty": "No conversations yet",
+  "chatsEmptyBody": "Message an owner from a property page to start chatting.",
+  "login": "Log in",
+  "register": "Sign up",
+  "logout": "Log out",
+  "email": "Email",
+  "password": "Password",
+  "fullName": "Full name",
+  "phone": "Phone (optional)",
+  "welcomeBack": "Welcome back",
+  "loginSubtitle": "Log in to save favorites and message owners.",
+  "registerSubtitle": "Create an account to list and message.",
+  "noAccountPrompt": "Don't have an account?",
+  "haveAccountPrompt": "Already have an account?",
+  "demoCredentials": "Demo accounts",
+  "demoOwner": "Owner demo",
+  "demoRenter": "Renter demo",
+  "propertyTypeApartment": "Apartment",
+  "propertyTypeVilla": "Villa",
+  "propertyTypeLand": "Land",
+  "propertyTypeOffice": "Office",
+  "propertyTypeShop": "Shop",
+  "forSale": "For sale",
+  "forRent": "For rent",
+  "furnished": "Furnished",
+  "unfurnished": "Unfurnished",
+  "bedroomsShort": "{count, plural, =1{1 bd} other{{count} bd}}",
+  "@bedroomsShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bathroomsShort": "{count, plural, =1{1 ba} other{{count} ba}}",
+  "@bathroomsShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "areaShort": "{value} m²",
+  "@areaShort": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "pricePerMonth": "{price} / month",
+  "@pricePerMonth": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "description": "Description",
+  "details": "Details",
+  "owner": "Owner",
+  "messageOwner": "Message owner",
+  "signInToMessage": "Log in to message the owner",
+  "favorite": "Save to favorites",
+  "unfavorite": "Remove from favorites",
+  "signInToFavorite": "Log in to save favorites",
+  "sendMessage": "Send",
+  "messageHint": "Write a message…",
+  "startingChatTitle": "Contact the owner",
+  "startingChatHint": "Introduce yourself and ask about the property.",
+  "startChat": "Send message",
+  "chatEmpty": "No messages yet. Say hello!",
+  "startChatGreeting": "Hi, is this property still available?",
+  "myListings": "My listings",
+  "newListing": "New listing",
+  "editListing": "Edit listing",
+  "createListing": "Publish listing",
+  "saveChanges": "Save changes",
+  "listingSaved": "Listing saved",
+  "listingDeleted": "Listing deleted",
+  "deleteListingTitle": "Delete this listing?",
+  "deleteListingBody": "This permanently removes the listing and its images.",
+  "photos": "Photos",
+  "addPhotos": "Add photos",
+  "maxImages": "Up to {count} images",
+  "@maxImages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noPhotos": "No photos yet",
+  "basicInfo": "Basics",
+  "pricing": "Pricing",
+  "location": "Location",
+  "titleEn": "Title (English)",
+  "titleAr": "Title (Arabic)",
+  "descriptionEn": "Description (English)",
+  "descriptionAr": "Description (Arabic)",
+  "price": "Price",
+  "areaSqm": "Area (m²)",
+  "landDetails": "Land details",
+  "landAgricultural": "Agricultural land",
+  "landBuilding": "Building plot",
+  "areaQirats": "Area (qirats)",
+  "qiratsShort": "{value} qirats",
+  "@qiratsShort": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "feddanHint": "1 feddan = 24 qirats ≈ 4,200 m²",
+  "frontage": "Frontage (m)",
+  "depth": "Depth (m)",
+  "streetWidth": "Street width (m)",
+  "dimensionsShort": "{frontage} × {depth} m",
+  "@dimensionsShort": {
+    "placeholders": {
+      "frontage": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "streetWidthShort": "{value} m street",
+  "@streetWidthShort": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "buildingPermit": "Building permit",
+  "permitAvailable": "Building permit available",
+  "permitMissing": "No building permit",
+  "negotiable": "Price negotiable",
+  "negotiableBadge": "Negotiable",
+  "yes": "Yes",
+  "no": "No",
+  "uploadFailed": "Image upload failed",
+  "thisIsYourListing": "This is your listing",
+  "language": "Language",
+  "theme": "Theme",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "english": "English",
+  "arabic": "العربية",
+  "admin": "Admin",
+  "profileSignedInAs": "Signed in as",
+  "loginToContinue": "Please log in to continue",
+  "invalidListing": "This listing is no longer available",
+  "invalidCredentials": "Invalid email or password",
+  "showPassword": "Show password",
+  "hidePassword": "Hide password",
+  "imageLimitReached": "You can add up to 8 images",
+  "removeImage": "Remove image",
+  "confirmPassword": "Confirm password",
+  "passwordsDoNotMatch": "Passwords do not match",
+  "invalidPhone": "Enter a valid phone number",
+  "verifyEmailTitle": "Verify your email",
+  "verifyEmailSubtitle": "Enter the 6-digit code we sent to {email}",
+  "@verifyEmailSubtitle": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationCode": "Verification code",
+  "verify": "Verify",
+  "resendCode": "Resend code",
+  "codeSent": "A new code has been sent",
+  "emailNotVerified": "Verify your email before logging in",
+  "verifyPrompt": "Verify email",
+  "invalidCode": "The code is incorrect or expired",
+  "codeLength": "Enter the 6-digit code",
+  "video": "Video",
+  "addVideo": "Add video",
+  "removeVideo": "Remove video",
+  "videoHint": "Optional · MP4, WebM or MOV up to 50 MB",
+  "videoTooLarge": "Video must be 50 MB or smaller",
+  "videoAttached": "Saved with this listing",
+  "videoPendingUpload": "Uploads when you save",
+  "titleRequiredOneLanguage": "Enter a title in at least one language",
+  "descriptionRequiredOneLanguage": "Enter a description in at least one language",
+  "governorateHint": "Search governorates",
+  "clearSelection": "Clear",
+  "previousImage": "Previous photo",
+  "nextImage": "Next photo",
+  "boundaries": "Boundaries",
+  "boundaryNorth": "North boundary",
+  "boundarySouth": "South boundary",
+  "boundaryEast": "East boundary",
+  "boundaryWest": "West boundary"
+}

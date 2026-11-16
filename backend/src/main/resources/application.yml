@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: aqar-api
+  datasource:
+    url: "${AQAR_DB_URL:jdbc:postgresql://localhost:55432/aqar}"
+    username: "${AQAR_DB_USER:aqar}"
+    password: "${AQAR_DB_PASSWORD:aqar}"
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        default_batch_fetch_size: 50
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 60MB
+
+server:
+  port: ${AQAR_API_PORT:8081}
+  error:
+    include-message: never
+    include-stacktrace: never
+
+aqar:
+  jwt:
+    secret: "${AQAR_JWT_SECRET:dev-only-secret-change-me-0123456789abcdef0123456789abcdef}"
+    ttl: PT24H
+  media:
+    dir: "${AQAR_MEDIA_DIR:./uploads}"
+  mail:
+    host: "${AQAR_SMTP_HOST:}"
+    port: ${AQAR_SMTP_PORT:587}
+    username: "${AQAR_SMTP_USERNAME:}"
+    password: "${AQAR_SMTP_PASSWORD:}"
+    from: "${AQAR_MAIL_FROM:}"
+    expose-code: ${AQAR_EXPOSE_VERIFICATION_CODE:false}
+  seed:
+    enabled: ${AQAR_SEED:true}
+    admin-email: "${AQAR_ADMIN_EMAIL:admin@aqar.app}"
+    admin-password: "${AQAR_ADMIN_PASSWORD:Admin@12345}"
+    demo-password: "${AQAR_DEMO_PASSWORD:Demo@12345}"
+  cors:
+    allowed-origins:
+      - "http://localhost:*"
+      - "http://127.0.0.1:*"
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
