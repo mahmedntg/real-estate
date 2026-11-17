@@ -1,13 +1,15 @@
 {
-    "name": "aqar_app",
-    "short_name": "aqar_app",
+    "name": "Aqar — عقار",
+    "short_name": "Aqar",
     "start_url": ".",
+    "id": "/",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#0E7C66",
+    "theme_color": "#0E7C66",
+    "description": "Browse and publish properties for sale and rent across Egypt.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
+    "categories": ["shopping", "business", "lifestyle"],
     "icons": [
         {
             "src": "icons/Icon-192.png",

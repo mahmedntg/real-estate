@@ -32,6 +32,16 @@ class SessionController extends Notifier<Session?> {
     await ref.read(prefsProvider).setString(_sessionKey, jsonEncode(session.toJson()));
   }
 
+  Future<void> updateUser(User user) async {
+    final session = state;
+    if (session == null) {
+      return;
+    }
+    final updated = Session(token: session.token, user: user);
+    state = updated;
+    await ref.read(prefsProvider).setString(_sessionKey, jsonEncode(updated.toJson()));
+  }
+
   Future<void> signOut() async {
     if (state == null) {
       return;

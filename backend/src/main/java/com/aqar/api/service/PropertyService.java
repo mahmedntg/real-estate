@@ -230,14 +230,10 @@ public class PropertyService {
         property.setArea(areaCode == null ? null : locations.requireArea(governorate, normalizeCode(areaCode)));
         property.setPrice(request.getPrice());
         applyLand(property, request);
-        BigDecimal netArea = property.netAreaSqm();
-        if (netArea != null) {
-            property.setAreaSqm(netArea);
-        } else if (request.getAreaQirats() != null) {
-            property.setAreaSqm(Property.qiratsToSqm(request.getAreaQirats()));
-        } else {
-            property.setAreaSqm(request.getAreaSqm());
-        }
+        property.setAreaSqm(property.getPropertyType() == PropertyType.LAND
+                ? (property.getAreaQirats() == null ? null
+                        : Property.qiratsAndSahmToSqm(property.getAreaQirats(), property.getAreaSahm()))
+                : request.getAreaSqm());
         property.setBedrooms(request.getBedrooms());
         property.setBathrooms(request.getBathrooms());
         property.setFurnished(request.isFurnished());
@@ -249,8 +245,10 @@ public class PropertyService {
      * Applies or clears the land detail fields of a listing.
      *
      * <p>Land details are rejected on non-land listings and cleared there, agricultural land must
-     * carry an area in qirats, building plots must carry a building permit flag, and the four plot
-     * sides are either all present or all absent so the net area can be derived.
+     * carry its area in qirats, the sahm part only exists on top of qirats, land never carries a
+     * square-metre area (that is derived from qirats and sahm), building plots must carry a
+     * building permit flag, and the four descriptive plot sides are either all present or all
+     * absent.
      *
      * @param property listing that receives the land details
      * @param request submitted listing values
@@ -258,6 +256,7 @@ public class PropertyService {
     private void applyLand(final Property property, final PropertyWriteRequest request) {
         boolean hasLandDetails = request.getLandKind() != null
                 || request.getAreaQirats() != null
+                || request.getAreaSahm() != null
                 || request.getNorthSideM() != null
                 || request.getSouthSideM() != null
                 || request.getEastSideM() != null
@@ -275,6 +274,7 @@ public class PropertyService {
             }
             property.setLandKind(null);
             property.setAreaQirats(null);
+            property.setAreaSahm(null);
             property.setNorthSideM(null);
             property.setSouthSideM(null);
             property.setEastSideM(null);
@@ -300,9 +300,17 @@ public class PropertyService {
             throw ApiException.badRequest("Invalid land details",
                     "Provide all four plot sides or none");
         }
+        if (request.getAreaSahm() != null && request.getAreaQirats() == null) {
+            throw ApiException.badRequest("Invalid land details",
+                    "Sahm requires qirats");
+        }
+        if (request.getAreaSqm() != null) {
+            throw ApiException.badRequest("Invalid land details",
+                    "Land area is given in qirats, not square metres");
+        }
         if (request.getLandKind() == LandKind.AGRICULTURAL && request.getAreaQirats() == null) {
             throw ApiException.badRequest("Invalid land details",
-                    "Agricultural land requires an area in qirats");
+                    "Agricultural land requires its area in qirats");
         }
         if (request.getLandKind() == LandKind.BUILDING && request.getBuildingPermit() == null) {
             throw ApiException.badRequest("Invalid land details",
@@ -310,6 +318,7 @@ public class PropertyService {
         }
         property.setLandKind(request.getLandKind());
         property.setAreaQirats(request.getAreaQirats());
+        property.setAreaSahm(request.getAreaSahm());
         property.setNorthSideM(request.getNorthSideM());
         property.setSouthSideM(request.getSouthSideM());
         property.setEastSideM(request.getEastSideM());

@@ -8,6 +8,7 @@ import com.aqar.api.domain.LandKind;
 import com.aqar.api.domain.ListingType;
 import com.aqar.api.domain.PropertyType;
 import com.aqar.api.payload.model.ImageView;
+import com.aqar.api.payload.model.ContactView;
 import com.aqar.api.payload.model.OwnerView;
 import lombok.Getter;
 import lombok.Setter;
@@ -65,6 +66,8 @@ public class PropertyDetailResponse {
 
     private OwnerView owner;
 
+    private ContactView contact;
+
     private boolean favorite;
 
     private boolean mine;
@@ -76,6 +79,8 @@ public class PropertyDetailResponse {
     private LandKind landKind;
 
     private BigDecimal areaQirats;
+
+    private Integer areaSahm;
 
     private BigDecimal northSideM;
 

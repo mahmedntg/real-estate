@@ -8,12 +8,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * Strongly typed binding for the {@code aqar.*} configuration namespace.
  *
- * <p>Aggregates the JWT, media storage, demo seed, CORS and mail settings consumed across the application.
+ * <p>Aggregates the JWT, media storage, S3 bucket, demo seed, CORS, mail and WhatsApp settings consumed
+ * across the application.
  *
  * @author Mohamed Sayed
  */
 @ConfigurationProperties(prefix = "aqar")
-public record AqarProperties(Jwt jwt, Media media, Seed seed, Cors cors, Mail mail) {
+public record AqarProperties(Jwt jwt, Media media, S3 s3, Seed seed, Cors cors, Mail mail,
+                             WhatsApp whatsapp) {
 
     /**
      * Access-token settings holding the HMAC signing secret and the token time to live.
@@ -29,6 +31,20 @@ public record AqarProperties(Jwt jwt, Media media, Seed seed, Cors cors, Mail ma
      * @author Mohamed Sayed
      */
     public record Media(Path dir) {
+    }
+
+    /**
+     * S3-compatible media storage settings.
+     *
+     * <p>Uploads move to the bucket when both the bucket name and the access key are set; otherwise media
+     * stays in the local media directory. A blank endpoint targets AWS S3, while any other S3-compatible
+     * service (Cloudflare R2, Backblaze B2, MinIO) needs its endpoint. The public URL is the base under
+     * which objects are reachable to browsers, for example a CDN hostname or a public bucket URL.
+     *
+     * @author Mohamed Sayed
+     */
+    public record S3(String bucket, String region, String endpoint, String publicUrl, String accessKey,
+                     String secretKey) {
     }
 
     /**
@@ -55,5 +71,17 @@ public record AqarProperties(Jwt jwt, Media media, Seed seed, Cors cors, Mail ma
      * @author Mohamed Sayed
      */
     public record Mail(boolean exposeCode, String host, int port, String username, String password, String from) {
+    }
+
+    /**
+     * WhatsApp Cloud API settings used to deliver verification codes to the mobile number.
+     *
+     * <p>Delivery is skipped and the mailer takes over when the token or phone number id is blank. The
+     * template must be an approved Meta authentication template whose body takes the code as its only
+     * parameter.
+     *
+     * @author Mohamed Sayed
+     */
+    public record WhatsApp(String token, String phoneNumberId, String template, String templateLanguage) {
     }
 }

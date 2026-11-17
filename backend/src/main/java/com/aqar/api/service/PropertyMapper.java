@@ -2,6 +2,7 @@ package com.aqar.api.service;
 
 import com.aqar.api.domain.Property;
 import com.aqar.api.payload.model.ImageView;
+import com.aqar.api.payload.model.ContactView;
 import com.aqar.api.payload.model.OwnerView;
 import com.aqar.api.payload.response.PropertyDetailResponse;
 import com.aqar.api.payload.response.PropertySummaryResponse;
@@ -45,6 +46,7 @@ public class PropertyMapper {
         response.setCreatedAt(property.getCreatedAt());
         response.setLandKind(property.getLandKind());
         response.setAreaQirats(property.getAreaQirats());
+        response.setAreaSahm(property.getAreaSahm());
         response.setNegotiable(property.isNegotiable());
         return response;
     }
@@ -79,12 +81,14 @@ public class PropertyMapper {
         response.setImages(property.getImages().stream().map(this::image).toList());
         response.setVideoUrl(property.getVideoUrl());
         response.setOwner(owner(property));
+        response.setContact(contact(property));
         response.setFavorite(favorite);
         response.setMine(mine);
         response.setCreatedAt(property.getCreatedAt());
         response.setUpdatedAt(property.getUpdatedAt());
         response.setLandKind(property.getLandKind());
         response.setAreaQirats(property.getAreaQirats());
+        response.setAreaSahm(property.getAreaSahm());
         response.setNorthSideM(property.getNorthSideM());
         response.setSouthSideM(property.getSouthSideM());
         response.setEastSideM(property.getEastSideM());
@@ -122,6 +126,20 @@ public class PropertyMapper {
         OwnerView view = new OwnerView();
         view.setId(property.getOwner().getId());
         view.setFullName(property.getOwner().getFullName());
+        return view;
+    }
+
+    /**
+     * Builds the seller contact details exposed on a listing.
+     *
+     * @param property listing whose owner contact is mapped
+     * @return contact payload with phone, WhatsApp number and Facebook URL
+     */
+    private ContactView contact(final Property property) {
+        ContactView view = new ContactView();
+        view.setPhone(property.getOwner().getPhone());
+        view.setWhatsapp(property.getOwner().getWhatsapp());
+        view.setFacebookUrl(property.getOwner().getFacebookUrl());
         return view;
     }
 

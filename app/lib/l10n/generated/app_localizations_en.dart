@@ -186,7 +186,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fullName => 'Full name';
 
   @override
-  String get phone => 'Phone (optional)';
+  String get phone => 'Phone';
 
   @override
   String get welcomeBack => 'Welcome back';
@@ -399,12 +399,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get areaQirats => 'Area (qirats)';
 
   @override
-  String qiratsShort(String value) {
-    return '$value qirats';
-  }
+  String get areaSahm => 'Sahm';
 
   @override
-  String get feddanHint => '1 feddan = 24 qirats ≈ 4,200 m²';
+  String get feddanHint => '1 feddan = 24 qirats · 1 qirat = 24 sahm';
+
+  @override
+  String get sahmHint => '24 sahm = 1 qirat';
+
+  @override
+  String get sahmRequiresQirats => 'Enter qirats before sahm';
+
+  @override
+  String get sahmRange => 'Sahm is between 0 and 23';
 
   @override
   String get plotDimensions => 'Plot dimensions';
@@ -437,8 +444,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get streetWidth => 'Street width (m)';
 
   @override
-  String netAreaShort(String value) {
-    return '≈ $value m² net';
+  String qiratsShort(String value) {
+    return '$value qirats';
+  }
+
+  @override
+  String sahmShort(int value) {
+    return '$value sahm';
   }
 
   @override
@@ -617,4 +629,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get boundaryWest => 'West boundary';
+
+  @override
+  String get ownerContact => 'Contact details';
+
+  @override
+  String get callSeller => 'Call';
+
+  @override
+  String get whatsapp => 'WhatsApp';
+
+  @override
+  String get facebook => 'Facebook';
+
+  @override
+  String get whatsappNumber => 'WhatsApp number (optional)';
+
+  @override
+  String get facebookUrl => 'Facebook link (optional)';
+
+  @override
+  String get phoneRequired => 'Enter your phone number';
+
+  @override
+  String get profileUpdated => 'Profile updated';
+
+  @override
+  String get invalidUrl =>
+      'Enter a valid link starting with http:// or https://';
+
+  @override
+  String get phoneChangeHint =>
+      'Changing your mobile number requires a verification code.';
+
+  @override
+  String get verifyNewNumber => 'Verify your new mobile number';
+
+  @override
+  String codeSentToNumber(String phone) {
+    return 'Enter the 6-digit code sent on WhatsApp to $phone';
+  }
+
+  @override
+  String get downloadAndroidApp => 'Download Android app';
+
+  @override
+  String get downloadAndroidAppBody => 'Install the native app on your phone';
 }

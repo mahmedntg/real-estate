@@ -92,7 +92,7 @@ class AqarApi {
     required String fullName,
     required String email,
     required String password,
-    String? phone,
+    required String phone,
   }) =>
       _guard(() async {
         final response = await _dio.post(
@@ -100,12 +100,50 @@ class AqarApi {
           data: {
             'full_name': fullName,
             'email': email,
-            'phone': (phone == null || phone.trim().isEmpty) ? null : phone.trim(),
+            'phone': phone.trim(),
             'password': password,
           },
         );
         return RegisterResult.fromJson(response.data as Map<String, dynamic>);
       });
+
+  Future<User> updateProfile({
+    required String fullName,
+    String? whatsapp,
+    String? facebookUrl,
+  }) =>
+      _guard(() async {
+        final response = await _dio.put(
+          '/auth/me',
+          data: {
+            'full_name': fullName,
+            'whatsapp': _optional(whatsapp),
+            'facebook_url': _optional(facebookUrl),
+          },
+        );
+        return User.fromJson(response.data as Map<String, dynamic>);
+      });
+
+  Future<String> startPhoneChange(String phone) => _guard(() async {
+        final response = await _dio.post(
+          '/auth/me/phone',
+          data: {'phone': phone.trim()},
+        );
+        return (response.data as Map<String, dynamic>)['phone'] as String;
+      });
+
+  Future<User> confirmPhoneChange(String phone, String code) => _guard(() async {
+        final response = await _dio.put(
+          '/auth/me/phone',
+          data: {'phone': phone.trim(), 'code': code.trim()},
+        );
+        return User.fromJson(response.data as Map<String, dynamic>);
+      });
+
+  String? _optional(String? value) {
+    final trimmed = value?.trim();
+    return (trimmed == null || trimmed.isEmpty) ? null : trimmed;
+  }
 
   Future<Session> verifyEmail(String email, String code) => _guard(() async {
         final response = await _dio.post(

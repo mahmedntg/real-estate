@@ -89,6 +89,10 @@ public class PropertyWriteRequest {
     @Digits(integer = 8, fraction = 2)
     private BigDecimal areaQirats;
 
+    @Min(0)
+    @Max(23)
+    private Integer areaSahm;
+
     @DecimalMin("0.01")
     @Digits(integer = 4, fraction = 2)
     private BigDecimal northSideM;

@@ -13,11 +13,15 @@ import com.aqar.api.config.AqarProperties;
 import com.aqar.api.domain.Role;
 import com.aqar.api.domain.User;
 import com.aqar.api.exception.ApiException;
+import com.aqar.api.payload.request.ConfirmPhoneChangeRequest;
 import com.aqar.api.payload.request.LoginRequest;
 import com.aqar.api.payload.request.RegisterRequest;
 import com.aqar.api.payload.request.ResendRequest;
+import com.aqar.api.payload.request.StartPhoneChangeRequest;
+import com.aqar.api.payload.request.UpdateProfileRequest;
 import com.aqar.api.payload.request.VerifyRequest;
 import com.aqar.api.payload.response.AuthResponse;
+import com.aqar.api.payload.response.PhoneChangeResponse;
 import com.aqar.api.payload.response.RegisterResponse;
 import com.aqar.api.payload.response.UserResponse;
 import com.aqar.api.repository.UserRepository;
@@ -28,10 +32,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Handles registration, email verification and credential login for local accounts.
+ * Handles registration, account verification, credential login, profile updates and verified mobile
+ * number changes for local accounts.
  *
- * <p>New accounts are stored unverified and receive a short one-time code by email; a token is only
- * issued once that code has been verified.
+ * <p>New accounts are stored unverified and receive a short one-time code on their mobile through
+ * WhatsApp, falling back to email; a token is only issued once that code has been verified. A mobile
+ * number is unique across accounts and only changes after the new number confirms a code.
  *
  * @author Mohamed Sayed
  */
@@ -44,7 +50,7 @@ public class AuthService {
     private final UserRepository users;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final VerificationMailer mailer;
+    private final VerificationSender sender;
     private final AqarProperties config;
 
     /**
@@ -53,24 +59,24 @@ public class AuthService {
      * @param users repository used to read and store accounts
      * @param passwordEncoder encoder used to hash and check passwords
      * @param jwtService service that issues access tokens
-     * @param mailer mailer used to deliver verification codes
+     * @param sender sender used to deliver verification codes
      * @param config application configuration
      */
     public AuthService(final UserRepository users, final PasswordEncoder passwordEncoder, final JwtService jwtService,
-                       final VerificationMailer mailer, final AqarProperties config) {
+                       final VerificationSender sender, final AqarProperties config) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
-        this.mailer = mailer;
+        this.sender = sender;
         this.config = config;
     }
 
     /**
-     * Creates an unverified account, mails a verification code and returns the pending result.
+     * Creates an unverified account, sends a verification code and returns the pending result.
      *
      * @param request registration payload with full name, email, phone and password
      * @return registration result holding the email, a pending flag and the code when exposed
-     * @throws ApiException when an account with the same email already exists
+     * @throws ApiException when an account with the same email or the same mobile number already exists
      */
     @Transactional
     public RegisterResponse register(final RegisterRequest request) {
@@ -79,17 +85,22 @@ public class AuthService {
             throw new ApiException(HttpStatus.CONFLICT, "Email already registered",
                     "An account with this email already exists");
         }
+        String phone = normalizePhone(request.getPhone());
+        if (users.existsByPhone(phone)) {
+            throw new ApiException(HttpStatus.CONFLICT, "Phone already registered",
+                    "This mobile number is already registered");
+        }
 
         User user = new User();
         user.setFullName(request.getFullName().trim());
         user.setEmail(email);
-        user.setPhone(normalize(request.getPhone()));
+        user.setPhone(phone);
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setRole(Role.USER);
         user.setEmailVerified(false);
         String code = issueVerificationCode(user);
         users.save(user);
-        mailer.sendCode(email, code);
+        sender.sendCode(phone, email, code);
         return registrationResult(email, code);
     }
 
@@ -131,7 +142,7 @@ public class AuthService {
     }
 
     /**
-     * Replaces the stored verification code and mails a new one for an unverified account.
+     * Replaces the stored verification code and sends a new one for an unverified account.
      *
      * @param request resend payload holding the account email
      * @return registration result holding the email, a pending flag and the code when exposed
@@ -148,7 +159,7 @@ public class AuthService {
         }
         String code = issueVerificationCode(user);
         users.save(user);
-        mailer.sendCode(email, code);
+        sender.sendCode(user.getPhone(), email, code);
         return registrationResult(email, code);
     }
 
@@ -189,6 +200,110 @@ public class AuthService {
     }
 
     /**
+     * Updates the display name and seller contact details of an existing account.
+     *
+     * <p>The mobile number is not changed here; it only changes through the verified phone workflow.
+     *
+     * @param userId identifier of the account to update
+     * @param request new display name, WhatsApp number and Facebook URL
+     * @return the updated user profile
+     * @throws ApiException when the account no longer exists
+     */
+    @Transactional
+    public UserResponse updateProfile(final UUID userId, final UpdateProfileRequest request) {
+        User user = users.findById(userId)
+                .orElseThrow(() -> ApiException.notFound("User not found"));
+        String whatsapp = normalize(request.getWhatsapp());
+        user.setFullName(request.getFullName().trim());
+        user.setWhatsapp(whatsapp == null ? null : normalizePhone(whatsapp));
+        user.setFacebookUrl(normalize(request.getFacebookUrl()));
+        users.save(user);
+        return UserResponse.from(user);
+    }
+
+    /**
+     * Stores a pending mobile number and sends a verification code to it.
+     *
+     * <p>The account keeps its current number until the new one confirms the code.
+     *
+     * @param userId identifier of the account changing its number
+     * @param request payload holding the new mobile number
+     * @return the pending number with a verification-required flag
+     * @throws ApiException when the account no longer exists, the number is unchanged or already taken
+     */
+    @Transactional
+    public PhoneChangeResponse startPhoneChange(final UUID userId, final StartPhoneChangeRequest request) {
+        User user = users.findById(userId)
+                .orElseThrow(() -> ApiException.notFound("User not found"));
+        String phone = normalizePhone(request.getPhone());
+        if (phone.equals(user.getPhone())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Same mobile number",
+                    "This is already your mobile number");
+        }
+        if (users.existsByPhoneAndIdNot(phone, userId)) {
+            throw new ApiException(HttpStatus.CONFLICT, "Phone already registered",
+                    "This mobile number is already registered");
+        }
+
+        String code = nextCode();
+        user.setPendingPhone(phone);
+        user.setPendingPhoneCodeHash(hashCode(phone, code));
+        user.setPendingPhoneExpiresAt(Instant.now().plus(CODE_TTL));
+        users.save(user);
+        sender.sendCode(phone, user.getEmail(), code);
+
+        PhoneChangeResponse response = new PhoneChangeResponse();
+        response.setPhone(phone);
+        response.setVerificationRequired(true);
+        response.setDevCode(devCode(code));
+        return response;
+    }
+
+    /**
+     * Applies the pending mobile number once the code sent to it is confirmed.
+     *
+     * @param userId identifier of the account changing its number
+     * @param request payload holding the new number and the received code
+     * @return the updated user profile carrying the new number
+     * @throws ApiException when the account is missing, no change is pending, the pending number differs,
+     *                       the code expired or does not match, or the number was taken in the meantime
+     */
+    @Transactional
+    public UserResponse confirmPhoneChange(final UUID userId, final ConfirmPhoneChangeRequest request) {
+        User user = users.findById(userId)
+                .orElseThrow(() -> ApiException.notFound("User not found"));
+        String phone = normalizePhone(request.getPhone());
+        if (user.getPendingPhone() == null || user.getPendingPhoneCodeHash() == null
+                || user.getPendingPhoneExpiresAt() == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "No pending mobile change",
+                    "Request a verification code for the new number");
+        }
+        if (!user.getPendingPhone().equals(phone)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid code",
+                    "The verification code is incorrect");
+        }
+        if (user.getPendingPhoneExpiresAt().isBefore(Instant.now())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Verification code expired",
+                    "Request a new verification code");
+        }
+        if (!hashCode(phone, request.getCode()).equals(user.getPendingPhoneCodeHash())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid code",
+                    "The verification code is incorrect");
+        }
+        if (users.existsByPhoneAndIdNot(phone, userId)) {
+            throw new ApiException(HttpStatus.CONFLICT, "Phone already registered",
+                    "This mobile number is already registered");
+        }
+
+        user.setPhone(phone);
+        user.setPendingPhone(null);
+        user.setPendingPhoneCodeHash(null);
+        user.setPendingPhoneExpiresAt(null);
+        users.save(user);
+        return UserResponse.from(user);
+    }
+
+    /**
      * Builds the registration result returned to a pending account.
      *
      * @param email normalised email address of the pending account
@@ -220,13 +335,22 @@ public class AuthService {
      * Generates a six-digit code and stores its hash and expiry on the pending account.
      *
      * @param user account that receives the verification code
-     * @return the plain code that is mailed to the user
+     * @return the plain code that is sent to the user
      */
     private String issueVerificationCode(final User user) {
-        String code = String.format(Locale.ROOT, "%06d", CODE_RANDOM.nextInt(1_000_000));
+        String code = nextCode();
         user.setVerificationCodeHash(hashCode(user.getEmail(), code));
         user.setVerificationExpiresAt(Instant.now().plus(CODE_TTL));
         return code;
+    }
+
+    /**
+     * Generates a six-digit verification code.
+     *
+     * @return zero-padded six digit code
+     */
+    private String nextCode() {
+        return String.format(Locale.ROOT, "%06d", CODE_RANDOM.nextInt(1_000_000));
     }
 
     /**
@@ -240,16 +364,16 @@ public class AuthService {
     }
 
     /**
-     * Hashes the email and code pair with SHA-256 and encodes it for storage.
+     * Hashes a key and code pair with SHA-256 and encodes it for storage.
      *
-     * @param email email the code was issued for
+     * @param key email or mobile number the code was issued for
      * @param code plain verification code
      * @return URL-safe Base64 hash without padding
      */
-    private String hashCode(final String email, final String code) {
+    private String hashCode(final String key, final String code) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest((email + ":" + code).getBytes(StandardCharsets.UTF_8));
+            byte[] hash = digest.digest((key + ":" + code).getBytes(StandardCharsets.UTF_8));
             return Base64.getUrlEncoder().withoutPadding().encodeToString(hash);
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 unavailable", e);
@@ -264,6 +388,17 @@ public class AuthService {
      */
     private String normalizeEmail(final String email) {
         return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * Strips separators from a mobile number while keeping an international plus prefix.
+     *
+     * @param phone raw mobile number
+     * @return digits with an optional leading plus, matching the stored unique value
+     */
+    private String normalizePhone(final String phone) {
+        String cleaned = phone.replaceAll("[^0-9+]", "");
+        return cleaned.startsWith("+") ? "+" + cleaned.replace("+", "") : cleaned.replace("+", "");
     }
 
     /**

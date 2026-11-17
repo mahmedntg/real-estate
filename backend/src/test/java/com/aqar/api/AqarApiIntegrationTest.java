@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import java.util.Base64;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,8 @@ class AqarApiIntegrationTest {
     private static final byte[] ONE_PIXEL_PNG = Base64.getDecoder().decode(
             "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=");
 
+    private static final AtomicInteger PHONE_SEQUENCE = new AtomicInteger(1_000_000);
+
     @Container
     @ServiceConnection
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:18.7-alpine");
@@ -53,7 +56,7 @@ class AqarApiIntegrationTest {
     void authFlowRequiresEmailVerificationAndIssuesJwt() throws Exception {
         String email = uniqueEmail("auth");
         String registerBody = """
-                {"full_name":"Auth User","email":"%s","password":"Password123!","phone":"+965 5555 0000"}
+                {"full_name":"Auth User","email":"%s","password":"Password123!","phone":"+20 100 555 0101"}
                 """.formatted(email);
 
         String response = mockMvc.perform(post("/api/v1/auth/register")
@@ -300,6 +303,7 @@ class AqarApiIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.land_kind").value("AGRICULTURAL"))
                 .andExpect(jsonPath("$.area_qirats").value(10.0))
+                .andExpect(jsonPath("$.area_sahm").value(nullValue()))
                 .andExpect(jsonPath("$.area_sqm").value(1750.3))
                 .andExpect(jsonPath("$.south_side_m").value(nullValue()))
                 .andExpect(jsonPath("$.street_width_m").value(8.0))
@@ -315,7 +319,18 @@ class AqarApiIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].land_kind").value("AGRICULTURAL"))
                 .andExpect(jsonPath("$.items[0].area_qirats").value(10.0))
+                .andExpect(jsonPath("$.items[0].area_sahm").value(nullValue()))
                 .andExpect(jsonPath("$.items[0].negotiable").value(true));
+
+        mockMvc.perform(post("/api/v1/properties")
+                        .header("Authorization", bearer(ownerToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(landBody("Farm with sahm " + UUID.randomUUID(), "LAND", "AGRICULTURAL",
+                                "5.00", "12", null, null, null, null, null)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.area_qirats").value(5.0))
+                .andExpect(jsonPath("$.area_sahm").value(12))
+                .andExpect(jsonPath("$.area_sqm").value(962.67));
 
         mockMvc.perform(post("/api/v1/properties")
                         .header("Authorization", bearer(ownerToken))
@@ -324,7 +339,8 @@ class AqarApiIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.land_kind").value("BUILDING"))
                 .andExpect(jsonPath("$.building_permit").value(true))
-                .andExpect(jsonPath("$.area_sqm").value(500.0))
+                .andExpect(jsonPath("$.area_qirats").value(nullValue()))
+                .andExpect(jsonPath("$.area_sqm").value(nullValue()))
                 .andExpect(jsonPath("$.boundary_north").value("Nile irrigation canal"))
                 .andExpect(jsonPath("$.negotiable").value(true));
 
@@ -338,7 +354,8 @@ class AqarApiIntegrationTest {
                 .andExpect(jsonPath("$.south_side_m").value(60.0))
                 .andExpect(jsonPath("$.east_side_m").value(30.0))
                 .andExpect(jsonPath("$.west_side_m").value(26.0))
-                .andExpect(jsonPath("$.area_sqm").value(1540.0));
+                .andExpect(jsonPath("$.area_qirats").value(nullValue()))
+                .andExpect(jsonPath("$.area_sqm").value(nullValue()));
 
         mockMvc.perform(post("/api/v1/properties")
                         .header("Authorization", bearer(ownerToken))
@@ -351,10 +368,45 @@ class AqarApiIntegrationTest {
         mockMvc.perform(post("/api/v1/properties")
                         .header("Authorization", bearer(ownerToken))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(landBody("Agricultural without qirats " + UUID.randomUUID(),
+                        .content(landBody("Agricultural in sqm " + UUID.randomUUID(),
+                                "LAND", "AGRICULTURAL", "5.00", null)
+                                .replace("\"furnished\": false,",
+                                        "\"area_sqm\": 500.00, \"furnished\": false,")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Invalid land details"));
+
+        mockMvc.perform(post("/api/v1/properties")
+                        .header("Authorization", bearer(ownerToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(landBody("Agricultural from sides " + UUID.randomUUID(),
+                                "LAND", "AGRICULTURAL", null, null,
+                                "50.00", "60.00", "30.00", "26.00")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Invalid land details"));
+
+        mockMvc.perform(post("/api/v1/properties")
+                        .header("Authorization", bearer(ownerToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(landBody("Agricultural without area " + UUID.randomUUID(),
                                 "LAND", "AGRICULTURAL", null, null)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value("Invalid land details"));
+
+        mockMvc.perform(post("/api/v1/properties")
+                        .header("Authorization", bearer(ownerToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(landBody("Sahm without qirats " + UUID.randomUUID(),
+                                "LAND", "BUILDING", null, "6", true, null, null, null, null)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Invalid land details"));
+
+        mockMvc.perform(post("/api/v1/properties")
+                        .header("Authorization", bearer(ownerToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(landBody("Sahm out of range " + UUID.randomUUID(),
+                                "LAND", "AGRICULTURAL", "5.00", "24", null, null, null, null, null)))
+                .andExpect(status().isBadRequest());
+
         mockMvc.perform(post("/api/v1/properties")
                         .header("Authorization", bearer(ownerToken))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -641,12 +693,28 @@ class AqarApiIntegrationTest {
     }
 
     @Test
-    void registrationToleratesMissingPhoneAndRejectsRepeatedVerification() throws Exception {
-        String email = uniqueEmail("no-phone");
-        String response = mockMvc.perform(post("/api/v1/auth/register")
+    void registrationRequiresPhoneAndRejectsRepeatedVerification() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"full_name":"No Phone","email":"%s","password":"Password123!"}
+                                """.formatted(uniqueEmail("no-phone"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Validation failed"));
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"full_name":"Blank Phone","email":"%s","phone":"   ","password":"Password123!"}
+                                """.formatted(uniqueEmail("blank-phone"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Validation failed"));
+
+        String email = uniqueEmail("phone");
+        String response = mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"full_name":"Phone User","email":"%s","password":"Password123!","phone":"+20 100 555 0102"}
                                 """.formatted(email)))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
@@ -665,13 +733,163 @@ class AqarApiIntegrationTest {
                                 """.formatted(email, code)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value("Already verified"));
+    }
+
+    @Test
+    void sellerContactDetailsAreEditableAndShownOnListings() throws Exception {
+        String token = register("contact");
+        String meResponse = mockMvc.perform(get("/api/v1/auth/me").header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String phone = JsonPath.read(meResponse, "$.phone");
+
+        mockMvc.perform(put("/api/v1/auth/me")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"full_name":"Contact Seller","whatsapp":"+20 100 555 0104","facebook_url":"https://www.facebook.com/contact.seller"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.full_name").value("Contact Seller"))
+                .andExpect(jsonPath("$.phone").value(phone))
+                .andExpect(jsonPath("$.whatsapp").value("+201005550104"))
+                .andExpect(jsonPath("$.facebook_url").value("https://www.facebook.com/contact.seller"));
+
+        mockMvc.perform(get("/api/v1/auth/me").header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.whatsapp").value("+201005550104"));
+
+        String propertyId = createProperty(token, "Contact Listing " + UUID.randomUUID());
+        mockMvc.perform(get("/api/v1/properties/{id}", propertyId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.contact.phone").value(phone))
+                .andExpect(jsonPath("$.contact.whatsapp").value("+201005550104"))
+                .andExpect(jsonPath("$.contact.facebook_url").value("https://www.facebook.com/contact.seller"));
+
+        mockMvc.perform(put("/api/v1/auth/me")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"full_name":"Contact Seller"}
+                                """))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(put("/api/v1/auth/me")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"full_name":"Contact Seller","facebook_url":"not-a-url"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Validation failed"));
+        mockMvc.perform(put("/api/v1/auth/me")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"whatsapp":"+20 100 555 0104"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Validation failed"));
+    }
+
+    @Test
+    void mobileNumbersAreUniqueAndOnlyChangeAfterVerification() throws Exception {
+        String email = uniqueEmail("unique-phone");
+        String phone = "+201011110001";
+        String token = registerWithPhone(email, phone);
 
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"full_name":"Blank Phone","email":"%s","phone":"   ","password":"Password123!"}
-                                """.formatted(uniqueEmail("blank-phone"))))
-                .andExpect(status().isCreated());
+                                {"full_name":"Duplicate Phone","email":"%s","password":"Password123!","phone":"%s"}
+                                """.formatted(uniqueEmail("dup-phone"), phone)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.title").value("Phone already registered"));
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"full_name":"Duplicate Email","email":"%s","password":"Password123!","phone":"+201011110002"}
+                                """.formatted(email)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.title").value("Email already registered"));
+
+        String newPhone = "+201011110003";
+        String startResponse = mockMvc.perform(post("/api/v1/auth/me/phone")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"phone":"+20 101 111 0003"}
+                                """))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.phone").value(newPhone))
+                .andExpect(jsonPath("$.verification_required").value(true))
+                .andReturn().getResponse().getContentAsString();
+        String code = JsonPath.read(startResponse, "$.dev_code");
+
+        mockMvc.perform(get("/api/v1/auth/me").header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.phone").value(phone));
+
+        mockMvc.perform(put("/api/v1/auth/me/phone")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"phone":"%s","code":"%s"}
+                                """.formatted(newPhone, "000000".equals(code) ? "111111" : "000000")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Invalid code"));
+
+        mockMvc.perform(put("/api/v1/auth/me/phone")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"phone":"+201011110004","code":"%s"}
+                                """.formatted(code)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Invalid code"));
+
+        mockMvc.perform(put("/api/v1/auth/me/phone")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"phone":"%s","code":"%s"}
+                                """.formatted(newPhone, code)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.phone").value(newPhone));
+
+        mockMvc.perform(post("/api/v1/auth/me/phone")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"phone":"%s"}
+                                """.formatted(newPhone)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Same mobile number"));
+
+        String takenPhone = "+201011110005";
+        registerWithPhone(uniqueEmail("taken-phone"), takenPhone);
+        mockMvc.perform(post("/api/v1/auth/me/phone")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"phone":"%s"}
+                                """.formatted(takenPhone)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.title").value("Phone already registered"));
+
+        mockMvc.perform(post("/api/v1/auth/me/phone")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"phone":"+201011110006"}
+                                """))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(put("/api/v1/auth/me/phone")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"phone":"+201011110007","code":"123456"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("No pending mobile change"));
     }
 
     @Test
@@ -818,13 +1036,32 @@ class AqarApiIntegrationTest {
     private String register(String prefix) throws Exception {
         String email = uniqueEmail(prefix);
         String body = """
-                {"full_name":"%s","email":"%s","password":"Password123!","phone":"+965 5555 0000"}
-                """.formatted(prefix, email);
+                {"full_name":"%s","email":"%s","password":"Password123!","phone":"+2010%07d"}
+                """.formatted(prefix, email, PHONE_SEQUENCE.incrementAndGet());
         String response = mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.verification_required").value(true))
+                .andReturn().getResponse().getContentAsString();
+        String code = JsonPath.read(response, "$.dev_code");
+        String verified = mockMvc.perform(post("/api/v1/auth/verify")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"%s","code":"%s"}
+                                """.formatted(email, code)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        return JsonPath.read(verified, "$.token");
+    }
+
+    private String registerWithPhone(String email, String phone) throws Exception {
+        String response = mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"full_name":"Phone User","email":"%s","password":"Password123!","phone":"%s"}
+                                """.formatted(email, phone)))
+                .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         String code = JsonPath.read(response, "$.dev_code");
         String verified = mockMvc.perform(post("/api/v1/auth/verify")
@@ -905,12 +1142,19 @@ class AqarApiIntegrationTest {
 
     private String landBody(String title, String propertyType, String landKind,
                             String areaQirats, Boolean buildingPermit) {
-        return landBody(title, propertyType, landKind, areaQirats, buildingPermit,
+        return landBody(title, propertyType, landKind, areaQirats, null, buildingPermit,
                 null, null, null, null);
     }
 
     private String landBody(String title, String propertyType, String landKind,
                             String areaQirats, Boolean buildingPermit, String northSideM,
+                            String southSideM, String eastSideM, String westSideM) {
+        return landBody(title, propertyType, landKind, areaQirats, null, buildingPermit,
+                northSideM, southSideM, eastSideM, westSideM);
+    }
+
+    private String landBody(String title, String propertyType, String landKind, String areaQirats,
+                            String areaSahm, Boolean buildingPermit, String northSideM,
                             String southSideM, String eastSideM, String westSideM) {
         return """
                 {
@@ -924,10 +1168,10 @@ class AqarApiIntegrationTest {
                   "governorate_code": "GIZA",
                   "area_code": "OCTOBER_6",
                   "price": 3200000.000,
-                  "area_sqm": 500.00,
                   "furnished": false,
                   "land_kind": "%s",
                   "area_qirats": %s,
+                  "area_sahm": %s,
                   "north_side_m": %s,
                   "south_side_m": %s,
                   "east_side_m": %s,
@@ -942,6 +1186,7 @@ class AqarApiIntegrationTest {
                 }
                 """.formatted(title, propertyType, landKind,
                 areaQirats == null ? "null" : areaQirats,
+                areaSahm == null ? "null" : areaSahm,
                 northSideM == null ? "null" : northSideM,
                 southSideM == null ? "null" : southSideM,
                 eastSideM == null ? "null" : eastSideM,

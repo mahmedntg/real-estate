@@ -62,7 +62,7 @@
   "email": "Email",
   "password": "Password",
   "fullName": "Full name",
-  "phone": "Phone (optional)",
+  "phone": "Phone",
   "welcomeBack": "Welcome back",
   "loginSubtitle": "Log in to save favorites and message owners.",
   "registerSubtitle": "Create an account to list and message.",
@@ -160,15 +160,11 @@
   "landAgricultural": "Agricultural land",
   "landBuilding": "Building plot",
   "areaQirats": "Area (qirats)",
-  "qiratsShort": "{value} qirats",
-  "@qiratsShort": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "feddanHint": "1 feddan = 24 qirats ≈ 4,200 m²",
+  "areaSahm": "Sahm",
+  "feddanHint": "1 feddan = 24 qirats · 1 qirat = 24 sahm",
+  "sahmHint": "24 sahm = 1 qirat",
+  "sahmRequiresQirats": "Enter qirats before sahm",
+  "sahmRange": "Sahm is between 0 and 23",
   "plotDimensions": "Plot dimensions",
   "plotSidesHint": "Enter all four sides, or leave them empty",
   "plotSidesRequired": "Enter all four plot sides, or leave them empty",
@@ -188,11 +184,19 @@
     }
   },
   "streetWidth": "Street width (m)",
-  "netAreaShort": "≈ {value} m² net",
-  "@netAreaShort": {
+  "qiratsShort": "{value} qirats",
+  "@qiratsShort": {
     "placeholders": {
       "value": {
         "type": "String"
+      }
+    }
+  },
+  "sahmShort": "{value} sahm",
+  "@sahmShort": {
+    "placeholders": {
+      "value": {
+        "type": "int"
       }
     }
   },
@@ -266,5 +270,26 @@
   "boundaryNorth": "North boundary",
   "boundarySouth": "South boundary",
   "boundaryEast": "East boundary",
-  "boundaryWest": "West boundary"
+  "boundaryWest": "West boundary",
+  "ownerContact": "Contact details",
+  "callSeller": "Call",
+  "whatsapp": "WhatsApp",
+  "facebook": "Facebook",
+  "whatsappNumber": "WhatsApp number (optional)",
+  "facebookUrl": "Facebook link (optional)",
+  "phoneRequired": "Enter your phone number",
+  "profileUpdated": "Profile updated",
+  "invalidUrl": "Enter a valid link starting with http:// or https://",
+  "phoneChangeHint": "Changing your mobile number requires a verification code.",
+  "verifyNewNumber": "Verify your new mobile number",
+  "codeSentToNumber": "Enter the 6-digit code sent on WhatsApp to {phone}",
+  "@codeSentToNumber": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadAndroidApp": "Download Android app",
+  "downloadAndroidAppBody": "Install the native app on your phone"
 }

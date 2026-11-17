@@ -40,6 +40,7 @@ class _ListingEditorPageState extends ConsumerState<ListingEditorPage> {
   final _bedrooms = TextEditingController();
   final _bathrooms = TextEditingController();
   final _areaQirats = TextEditingController();
+  final _areaSahm = TextEditingController();
   final _eastSide = TextEditingController();
   final _westSide = TextEditingController();
   final _northSide = TextEditingController();
@@ -98,6 +99,7 @@ class _ListingEditorPageState extends ConsumerState<ListingEditorPage> {
     _bedrooms.dispose();
     _bathrooms.dispose();
     _areaQirats.dispose();
+    _areaSahm.dispose();
     _eastSide.dispose();
     _westSide.dispose();
     _northSide.dispose();
@@ -138,6 +140,7 @@ class _ListingEditorPageState extends ConsumerState<ListingEditorPage> {
             detail.areaSqm == null ? '' : _numberText(detail.areaSqm!);
         _areaQirats.text =
             detail.areaQirats == null ? '' : _numberText(detail.areaQirats!);
+        _areaSahm.text = detail.areaSahm?.toString() ?? '';
         _eastSide.text =
             detail.eastSideM == null ? '' : _numberText(detail.eastSideM!);
         _westSide.text =
@@ -289,12 +292,13 @@ class _ListingEditorPageState extends ConsumerState<ListingEditorPage> {
         governorateCode: _governorateCode!,
         areaCode: _areaCode,
         price: num.parse(_price.text.trim()),
-        areaSqm: num.tryParse(_areaSqm.text.trim()),
+        areaSqm: isLand ? null : num.tryParse(_areaSqm.text.trim()),
         bedrooms: int.tryParse(_bedrooms.text.trim()),
         bathrooms: int.tryParse(_bathrooms.text.trim()),
         furnished: _furnished,
         landKind: isLand ? _landKind : null,
         areaQirats: isLand ? num.tryParse(_areaQirats.text.trim()) : null,
+        areaSahm: isLand ? int.tryParse(_areaSahm.text.trim()) : null,
         northSideM: isLand ? num.tryParse(_northSide.text.trim()) : null,
         southSideM: isLand ? num.tryParse(_southSide.text.trim()) : null,
         eastSideM: isLand ? num.tryParse(_eastSide.text.trim()) : null,
@@ -764,30 +768,33 @@ class _ListingEditorPageState extends ConsumerState<ListingEditorPage> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _areaSqm,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      decoration:
-                          InputDecoration(labelText: localizations.areaSqm),
-                      validator: (value) {
-                        final text = value?.trim() ?? '';
-                        if (text.isEmpty) {
+                  if (_propertyType != PropertyType.land) ...[
+                    Expanded(
+                      child: TextFormField(
+                        controller: _areaSqm,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration:
+                            InputDecoration(labelText: localizations.areaSqm),
+                        validator: (value) {
+                          final text = value?.trim() ?? '';
+                          if (text.isEmpty) {
+                            return null;
+                          }
+                          final parsed = num.tryParse(text);
+                          if (parsed == null) {
+                            return localizations.invalidNumber;
+                          }
+                          if (parsed <= 0) {
+                            return localizations.positiveNumber;
+                          }
                           return null;
-                        }
-                        final parsed = num.tryParse(text);
-                        if (parsed == null) {
-                          return localizations.invalidNumber;
-                        }
-                        if (parsed <= 0) {
-                          return localizations.positiveNumber;
-                        }
-                        return null;
-                      },
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
+                    const SizedBox(width: 12),
+                  ],
                   Expanded(
                     child: TextFormField(
                       controller: _bedrooms,
@@ -851,32 +858,64 @@ class _ListingEditorPageState extends ConsumerState<ListingEditorPage> {
                   labelOf: (value) => landKindLabel(localizations, value),
                   onSelected: (value) {
                     _landKind = value;
-                    if (value == LandKind.building) {
-                      _areaQirats.clear();
-                    } else {
+                    if (value != LandKind.building) {
                       _buildingPermit = null;
                     }
                   },
                 ),
-                if (_landKind == LandKind.agricultural) ...[
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _areaQirats,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      labelText: localizations.areaQirats,
-                      helperText: localizations.feddanHint,
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: TextFormField(
+                        controller: _areaQirats,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: localizations.areaQirats,
+                          helperText: localizations.feddanHint,
+                        ),
+                        validator: (value) {
+                          final text = value?.trim() ?? '';
+                          if (text.isEmpty) {
+                            return _landKind == LandKind.agricultural
+                                ? localizations.requiredField
+                                : null;
+                          }
+                          return _optionalPositive(localizations, text);
+                        },
+                      ),
                     ),
-                    validator: (value) {
-                      final text = value?.trim() ?? '';
-                      if (text.isEmpty) {
-                        return localizations.requiredField;
-                      }
-                      return _optionalPositive(localizations, text);
-                    },
-                  ),
-                ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _areaSahm,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: localizations.areaSahm,
+                          helperText: localizations.sahmHint,
+                        ),
+                        validator: (value) {
+                          final text = value?.trim() ?? '';
+                          if (text.isEmpty) {
+                            return null;
+                          }
+                          if (_areaQirats.text.trim().isEmpty) {
+                            return localizations.sahmRequiresQirats;
+                          }
+                          final parsed = int.tryParse(text);
+                          if (parsed == null || parsed < 0 || parsed > 23) {
+                            return localizations.sahmRange;
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 12),
                 Text(
                   localizations.plotDimensions,

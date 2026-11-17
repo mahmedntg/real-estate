@@ -431,7 +431,7 @@ abstract class AppLocalizations {
   /// No description provided for @phone.
   ///
   /// In en, this message translates to:
-  /// **'Phone (optional)'**
+  /// **'Phone'**
   String get phone;
 
   /// No description provided for @welcomeBack.
@@ -806,17 +806,35 @@ abstract class AppLocalizations {
   /// **'Area (qirats)'**
   String get areaQirats;
 
-  /// No description provided for @qiratsShort.
+  /// No description provided for @areaSahm.
   ///
   /// In en, this message translates to:
-  /// **'{value} qirats'**
-  String qiratsShort(String value);
+  /// **'Sahm'**
+  String get areaSahm;
 
   /// No description provided for @feddanHint.
   ///
   /// In en, this message translates to:
-  /// **'1 feddan = 24 qirats ≈ 4,200 m²'**
+  /// **'1 feddan = 24 qirats · 1 qirat = 24 sahm'**
   String get feddanHint;
+
+  /// No description provided for @sahmHint.
+  ///
+  /// In en, this message translates to:
+  /// **'24 sahm = 1 qirat'**
+  String get sahmHint;
+
+  /// No description provided for @sahmRequiresQirats.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter qirats before sahm'**
+  String get sahmRequiresQirats;
+
+  /// No description provided for @sahmRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Sahm is between 0 and 23'**
+  String get sahmRange;
 
   /// No description provided for @plotDimensions.
   ///
@@ -872,11 +890,17 @@ abstract class AppLocalizations {
   /// **'Street width (m)'**
   String get streetWidth;
 
-  /// No description provided for @netAreaShort.
+  /// No description provided for @qiratsShort.
   ///
   /// In en, this message translates to:
-  /// **'≈ {value} m² net'**
-  String netAreaShort(String value);
+  /// **'{value} qirats'**
+  String qiratsShort(String value);
+
+  /// No description provided for @sahmShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} sahm'**
+  String sahmShort(int value);
 
   /// No description provided for @streetWidthShort.
   ///
@@ -1219,6 +1243,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'West boundary'**
   String get boundaryWest;
+
+  /// No description provided for @ownerContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact details'**
+  String get ownerContact;
+
+  /// No description provided for @callSeller.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get callSeller;
+
+  /// No description provided for @whatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp'**
+  String get whatsapp;
+
+  /// No description provided for @facebook.
+  ///
+  /// In en, this message translates to:
+  /// **'Facebook'**
+  String get facebook;
+
+  /// No description provided for @whatsappNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp number (optional)'**
+  String get whatsappNumber;
+
+  /// No description provided for @facebookUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Facebook link (optional)'**
+  String get facebookUrl;
+
+  /// No description provided for @phoneRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your phone number'**
+  String get phoneRequired;
+
+  /// No description provided for @profileUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated'**
+  String get profileUpdated;
+
+  /// No description provided for @invalidUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid link starting with http:// or https://'**
+  String get invalidUrl;
+
+  /// No description provided for @phoneChangeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Changing your mobile number requires a verification code.'**
+  String get phoneChangeHint;
+
+  /// No description provided for @verifyNewNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your new mobile number'**
+  String get verifyNewNumber;
+
+  /// No description provided for @codeSentToNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code sent on WhatsApp to {phone}'**
+  String codeSentToNumber(String phone);
+
+  /// No description provided for @downloadAndroidApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Download Android app'**
+  String get downloadAndroidApp;
+
+  /// No description provided for @downloadAndroidAppBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Install the native app on your phone'**
+  String get downloadAndroidAppBody;
 }
 
 class _AppLocalizationsDelegate

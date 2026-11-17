@@ -1,11 +1,15 @@
+import 'dart:convert';
+
 import 'package:aqar_app/core/format.dart';
 import 'package:aqar_app/core/labels.dart';
 import 'package:aqar_app/core/location_fields.dart';
 import 'package:aqar_app/core/session.dart';
 import 'package:aqar_app/core/ui.dart';
+import 'package:aqar_app/data/api.dart';
 import 'package:aqar_app/data/models.dart';
 import 'package:aqar_app/features/auth/register_page.dart';
 import 'package:aqar_app/features/auth/verify_page.dart';
+import 'package:aqar_app/features/profile/profile_page.dart';
 import 'package:aqar_app/features/property/land_diagram.dart';
 import 'package:aqar_app/l10n/generated/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -101,7 +105,7 @@ void main() {
     expect(await priceText(const Locale('ar')), '18,000 ج.م / شهريًا');
   });
 
-  testWidgets('qirat areas format per locale', (tester) async {
+  testWidgets('qirat areas include the sahm part', (tester) async {
     Future<String> areaText(Locale locale) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -112,15 +116,27 @@ void main() {
             ...GlobalMaterialLocalizations.delegates,
           ],
           home: Builder(
-            builder: (context) => Text(qiratsLabel(context, 12.5)),
+            builder: (context) => Text(qiratsSahmLabel(context, 12.5, 6)),
           ),
         ),
       );
       return tester.widget<Text>(find.byType(Text)).data!;
     }
 
-    expect(await areaText(const Locale('en')), '12.50 qirats');
-    expect(await areaText(const Locale('ar')), '12.50 قيراط');
+    expect(await areaText(const Locale('en')), '12.50 qirats 6 sahm');
+    expect(await areaText(const Locale('ar')), '12.50 قيراط 6 سهم');
+  });
+
+  test('whatsapp links strip formatting characters', () {
+    expect(whatsAppUrl('+20 100 555 0104'), 'https://wa.me/201005550104');
+    expect(whatsAppUrl('201005550104'), 'https://wa.me/201005550104');
+  });
+
+  test('phone normalisation keeps a single leading plus', () {
+    expect(normalizePhone('+20 101 111 0003'), '+201011110003');
+    expect(normalizePhone('+20-101-111-0003'), '+201011110003');
+    expect(normalizePhone('20+1011110003'), '201011110003');
+    expect(normalizePhone('01011110003'), '01011110003');
   });
 
   testWidgets('titles fall back to the other language when empty',
@@ -238,7 +254,7 @@ void main() {
       'user@aqar.test',
     );
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Phone (optional)'),
+      find.widgetWithText(TextFormField, 'Phone'),
       '12',
     );
     await tester.enterText(
@@ -336,7 +352,7 @@ void main() {
     expect(payload['boundary_west'], '10 m street');
   });
 
-  testWidgets('land diagram renders all four sides and the net area',
+  testWidgets('land diagram renders all four sides and the area label',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(360, 640));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -349,7 +365,7 @@ void main() {
             southLabel: 'South: 60 m',
             eastLabel: 'East: 30 m',
             westLabel: 'West: 26 m',
-            areaLabel: '≈ 1,540 m²',
+            areaLabel: '5.00 qirats 12 sahm',
           ),
         ),
       ),
@@ -375,4 +391,123 @@ void main() {
     expect((image.image as AssetImage).assetName, defaultListingImage);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('a new mobile number is verified before the profile saves',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'session': jsonEncode(
+        const Session(
+          token: 'token',
+          user: User(
+            id: 'u1',
+            fullName: 'Demo Owner',
+            email: 'owner@aqar.app',
+            role: UserRole.user,
+            phone: '+201005550101',
+            whatsapp: '+201005550101',
+          ),
+        ).toJson(),
+      ),
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final api = _FakeApi();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          prefsProvider.overrideWithValue(prefs),
+          apiProvider.overrideWithValue(api),
+        ],
+        child: MaterialApp(
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            ...GlobalMaterialLocalizations.delegates,
+          ],
+          home: const ProfilePage(),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Contact details'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byType(TextFormField).at(1),
+      '+20 109 999 0012',
+    );
+    await tester.tap(find.text('Save changes'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Verify your new mobile number'), findsOneWidget);
+    expect(find.textContaining('+201099990012'), findsOneWidget);
+    expect(api.calls, ['start:+201099990012']);
+
+    await tester.enterText(find.byType(TextFormField).last, '123456');
+    await tester.tap(find.text('Verify'));
+    await tester.pumpAndSettle();
+
+    expect(api.calls, [
+      'start:+201099990012',
+      'confirm:+201099990012:123456',
+      'update:Demo Owner:+201005550101:',
+    ]);
+    expect(find.text('Profile updated'), findsOneWidget);
+    expect(find.text('+201099990012'), findsOneWidget);
+  });
+}
+
+class _FakeApi extends AqarApi {
+  _FakeApi()
+      : super(() => 'token', baseUrl: 'http://localhost', onUnauthorized: () {});
+
+  final List<String> calls = [];
+  User _user = const User(
+    id: 'u1',
+    fullName: 'Demo Owner',
+    email: 'owner@aqar.app',
+    role: UserRole.user,
+    phone: '+201005550101',
+    whatsapp: '+201005550101',
+  );
+
+  @override
+  Future<String> startPhoneChange(String phone) async {
+    calls.add('start:$phone');
+    return phone;
+  }
+
+  @override
+  Future<User> confirmPhoneChange(String phone, String code) async {
+    calls.add('confirm:$phone:$code');
+    _user = User(
+      id: _user.id,
+      fullName: _user.fullName,
+      email: _user.email,
+      role: _user.role,
+      phone: phone,
+      whatsapp: _user.whatsapp,
+      facebookUrl: _user.facebookUrl,
+    );
+    return _user;
+  }
+
+  @override
+  Future<User> updateProfile({
+    required String fullName,
+    String? whatsapp,
+    String? facebookUrl,
+  }) async {
+    calls.add('update:$fullName:${whatsapp ?? ''}:${facebookUrl ?? ''}');
+    _user = User(
+      id: _user.id,
+      fullName: fullName,
+      email: _user.email,
+      role: _user.role,
+      phone: _user.phone,
+      whatsapp: whatsapp,
+      facebookUrl: facebookUrl,
+    );
+    return _user;
+  }
 }

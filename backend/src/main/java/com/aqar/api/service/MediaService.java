@@ -26,12 +26,15 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.exception.SdkException;
 
 /**
  * Stores and serves the images and the single video attached to a listing.
  *
  * <p>Files are written under the configured media directory with generated UUID names, images are
- * limited to 8 MB and videos to 50 MB, and only managed file names are ever read or deleted.
+ * limited to 8 MB and videos to 50 MB, and only managed file names are ever read or deleted. When an
+ * S3 bucket is configured the files go to that bucket instead and their stored URLs point at its
+ * public base.
  *
  * @author Mohamed Sayed
  */
@@ -50,26 +53,30 @@ public class MediaService {
 
     private final Path root;
     private final PropertyRepository propertyRepository;
+    private final S3MediaStore s3;
 
     /**
-     * Creates the service and resolves the absolute media directory.
+     * Creates the service, resolves the absolute media directory and builds the S3 store when configured.
      *
-     * @param properties application configuration holding the media directory
+     * @param properties application configuration holding the media and S3 settings
      * @param propertyRepository repository used to load and store listings
      */
     public MediaService(final AqarProperties properties, final PropertyRepository propertyRepository) {
         this.root = properties.media().dir().toAbsolutePath().normalize();
         this.propertyRepository = propertyRepository;
+        this.s3 = S3MediaStore.create(properties.s3());
     }
 
     /**
-     * Creates the media directory when it does not exist yet.
+     * Creates the local media directory when local storage is in use.
      *
      * @throws IOException when the directory cannot be created
      */
     @PostConstruct
     void init() throws IOException {
-        Files.createDirectories(root);
+        if (s3 == null) {
+            Files.createDirectories(root);
+        }
     }
 
     /**
@@ -112,12 +119,7 @@ public class MediaService {
 
             String extension = extensionFor(file.getContentType());
             String filename = UUID.randomUUID() + "." + extension;
-            try (InputStream input = file.getInputStream()) {
-                Files.copy(input, root.resolve(filename));
-            } catch (IOException e) {
-                throw new IllegalStateException("Could not store uploaded image", e);
-            }
-            added.add(property.addImage(MEDIA_PREFIX + filename, sortOrder++));
+            added.add(property.addImage(store(filename, file.getContentType(), file), sortOrder++));
         }
 
         propertyRepository.flush();
@@ -180,13 +182,9 @@ public class MediaService {
         }
         String extension = videoExtensionFor(file.getContentType());
         String filename = UUID.randomUUID() + "." + extension;
-        try (InputStream input = file.getInputStream()) {
-            Files.copy(input, root.resolve(filename));
-        } catch (IOException e) {
-            throw new IllegalStateException("Could not store uploaded video", e);
-        }
+        String url = store(filename, file.getContentType(), file);
         deleteManagedVideo(property);
-        property.setVideoUrl(MEDIA_PREFIX + filename);
+        property.setVideoUrl(url);
         propertyRepository.save(property);
         VideoView response = new VideoView();
         response.setUrl(property.getVideoUrl());
@@ -347,11 +345,8 @@ public class MediaService {
      * @param pattern pattern the generated file name must match
      */
     private void deleteManagedFile(final String url, final Pattern pattern) {
-        if (url == null || !url.startsWith(MEDIA_PREFIX)) {
-            return;
-        }
-        String filename = url.substring(MEDIA_PREFIX.length());
-        if (!pattern.matcher(filename).matches()) {
+        String filename = managedFilename(url, pattern);
+        if (filename == null) {
             return;
         }
         try {
@@ -359,6 +354,55 @@ public class MediaService {
         } catch (IOException e) {
             LOGGER.warn("Could not delete media file {}", filename, e);
         }
+        if (s3 != null) {
+            try {
+                s3.delete(filename);
+            } catch (SdkException e) {
+                LOGGER.warn("Could not delete media object {}", filename, e);
+            }
+        }
+    }
+
+    /**
+     * Stores an uploaded file under its generated name in the configured backend.
+     *
+     * @param filename generated media file name
+     * @param contentType validated MIME type of the file
+     * @param file uploaded file
+     * @return stored URL of the file
+     * @throws IllegalStateException when the file cannot be written to the selected backend
+     */
+    private String store(final String filename, final String contentType, final MultipartFile file) {
+        try (InputStream input = file.getInputStream()) {
+            if (s3 != null) {
+                s3.put(filename, contentType, file.getSize(), input);
+                return s3.url(filename);
+            }
+            Files.copy(input, root.resolve(filename));
+            return MEDIA_PREFIX + filename;
+        } catch (IOException | SdkException e) {
+            throw new IllegalStateException("Could not store uploaded file", e);
+        }
+    }
+
+    /**
+     * Extracts the generated file name from either a local media URL or an S3 public URL.
+     *
+     * @param url media URL of the file
+     * @param pattern pattern the generated file name must match
+     * @return the managed file name, or null when the URL points at an unmanaged file
+     */
+    private String managedFilename(final String url, final Pattern pattern) {
+        if (url == null) {
+            return null;
+        }
+        String filename = null;
+        if (url.startsWith(MEDIA_PREFIX)) {
+            filename = url.substring(MEDIA_PREFIX.length());
+        } else if (s3 != null && url.startsWith(s3.publicBase() + "/")) {
+            filename = url.substring(s3.publicBase().length() + 1);
+        }
+        return filename != null && pattern.matcher(filename).matches() ? filename : null;
     }
 
     /**

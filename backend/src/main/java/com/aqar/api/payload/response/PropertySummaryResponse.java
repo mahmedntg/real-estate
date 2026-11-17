@@ -59,5 +59,7 @@ public class PropertySummaryResponse {
 
     private BigDecimal areaQirats;
 
+    private Integer areaSahm;
+
     private boolean negotiable;
 }

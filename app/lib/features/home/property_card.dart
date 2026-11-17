@@ -160,12 +160,18 @@ class PropertyCard extends ConsumerWidget {
                             property.bathrooms!,
                           ),
                         ),
-                      if (property.areaQirats != null)
+                      if (property.landKind != null &&
+                          property.areaQirats != null)
                         _Spec(
                           icon: Icons.landscape_outlined,
-                          label: qiratsLabel(context, property.areaQirats!),
+                          label: qiratsSahmLabel(
+                            context,
+                            property.areaQirats!,
+                            property.areaSahm,
+                          ),
                         )
-                      else if (property.areaSqm != null)
+                      else if (property.landKind == null &&
+                          property.areaSqm != null)
                         _Spec(
                           icon: Icons.square_foot,
                           label: localizations.areaShort(

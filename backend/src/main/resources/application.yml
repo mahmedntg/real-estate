@@ -33,6 +33,13 @@ aqar:
     ttl: PT24H
   media:
     dir: "${AQAR_MEDIA_DIR:./uploads}"
+  s3:
+    bucket: "${AQAR_S3_BUCKET:}"
+    region: "${AQAR_S3_REGION:us-east-1}"
+    endpoint: "${AQAR_S3_ENDPOINT:}"
+    public-url: "${AQAR_S3_PUBLIC_URL:}"
+    access-key: "${AQAR_S3_ACCESS_KEY:}"
+    secret-key: "${AQAR_S3_SECRET_KEY:}"
   mail:
     host: "${AQAR_SMTP_HOST:}"
     port: ${AQAR_SMTP_PORT:587}
@@ -40,16 +47,28 @@ aqar:
     password: "${AQAR_SMTP_PASSWORD:}"
     from: "${AQAR_MAIL_FROM:}"
     expose-code: ${AQAR_EXPOSE_VERIFICATION_CODE:false}
+  whatsapp:
+    token: "${AQAR_WHATSAPP_TOKEN:}"
+    phone-number-id: "${AQAR_WHATSAPP_PHONE_ID:}"
+    template: "${AQAR_WHATSAPP_TEMPLATE:aqar_verification_code}"
+    template-language: "${AQAR_WHATSAPP_TEMPLATE_LANG:ar}"
   seed:
     enabled: ${AQAR_SEED:true}
     admin-email: "${AQAR_ADMIN_EMAIL:admin@aqar.app}"
     admin-password: "${AQAR_ADMIN_PASSWORD:Admin@12345}"
     demo-password: "${AQAR_DEMO_PASSWORD:Demo@12345}"
   cors:
-    allowed-origins:
-      - "http://localhost:*"
-      - "http://127.0.0.1:*"
+    allowed-origins: "${AQAR_CORS_ORIGINS:http://localhost:*,http://127.0.0.1:*}"
 
 springdoc:
+  api-docs:
+    enabled: ${AQAR_SWAGGER_ENABLED:true}
   swagger-ui:
+    enabled: ${AQAR_SWAGGER_ENABLED:true}
     path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

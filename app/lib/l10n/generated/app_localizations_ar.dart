@@ -187,7 +187,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get fullName => 'الاسم الكامل';
 
   @override
-  String get phone => 'رقم الهاتف (اختياري)';
+  String get phone => 'رقم الهاتف';
 
   @override
   String get welcomeBack => 'مرحبًا بعودتك';
@@ -406,12 +406,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get areaQirats => 'المساحة (قيراط)';
 
   @override
-  String qiratsShort(String value) {
-    return '$value قيراط';
-  }
+  String get areaSahm => 'السهم';
 
   @override
-  String get feddanHint => 'الفدان = 24 قيراطًا ≈ 4,200 م²';
+  String get feddanHint => 'الفدان = 24 قيراطًا · القيراط = 24 سهمًا';
+
+  @override
+  String get sahmHint => '24 سهمًا = 1 قيراط';
+
+  @override
+  String get sahmRequiresQirats => 'أدخل القيراط قبل السهم';
+
+  @override
+  String get sahmRange => 'السهم بين 0 و23';
 
   @override
   String get plotDimensions => 'أبعاد الأرض';
@@ -443,8 +450,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get streetWidth => 'عرض الشارع (م)';
 
   @override
-  String netAreaShort(String value) {
-    return '≈ $value م² صافي';
+  String qiratsShort(String value) {
+    return '$value قيراط';
+  }
+
+  @override
+  String sahmShort(int value) {
+    return '$value سهم';
   }
 
   @override
@@ -622,4 +634,48 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get boundaryWest => 'الحد الغربي';
+
+  @override
+  String get ownerContact => 'بيانات التواصل';
+
+  @override
+  String get callSeller => 'اتصال';
+
+  @override
+  String get whatsapp => 'واتساب';
+
+  @override
+  String get facebook => 'فيسبوك';
+
+  @override
+  String get whatsappNumber => 'رقم واتساب (اختياري)';
+
+  @override
+  String get facebookUrl => 'رابط فيسبوك (اختياري)';
+
+  @override
+  String get phoneRequired => 'أدخل رقم هاتفك';
+
+  @override
+  String get profileUpdated => 'تم تحديث الملف الشخصي';
+
+  @override
+  String get invalidUrl => 'أدخل رابطًا صحيحًا يبدأ بـ http:// أو https://';
+
+  @override
+  String get phoneChangeHint => 'تغيير رقم الموبايل يتطلب رمز تحقق.';
+
+  @override
+  String get verifyNewNumber => 'تأكيد رقم الموبايل الجديد';
+
+  @override
+  String codeSentToNumber(String phone) {
+    return 'أدخل الرمز المكوّن من 6 أرقام المرسل على واتساب إلى $phone';
+  }
+
+  @override
+  String get downloadAndroidApp => 'حمّل تطبيق أندرويد';
+
+  @override
+  String get downloadAndroidAppBody => 'ثبّت التطبيق الأصلي على هاتفك';
 }

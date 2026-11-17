@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/config.dart';
 import '../../core/format.dart';
@@ -454,8 +455,8 @@ class _PropertyScaffold extends ConsumerWidget {
                   ),
                   if (detail.bedrooms != null ||
                       detail.bathrooms != null ||
-                      detail.areaSqm != null ||
                       detail.areaQirats != null ||
+                      detail.areaSqm != null ||
                       (detail.northSideM != null &&
                           detail.southSideM != null &&
                           detail.eastSideM != null &&
@@ -479,12 +480,18 @@ class _PropertyScaffold extends ConsumerWidget {
                             label: localizations
                                 .bathroomsShort(detail.bathrooms!),
                           ),
-                        if (detail.areaQirats != null)
+                        if (detail.landKind != null &&
+                            detail.areaQirats != null)
                           _InfoPill(
                             icon: Icons.landscape_outlined,
-                            label: qiratsLabel(context, detail.areaQirats!),
-                          ),
-                        if (detail.areaSqm != null)
+                            label: qiratsSahmLabel(
+                              context,
+                              detail.areaQirats!,
+                              detail.areaSahm,
+                            ),
+                          )
+                        else if (detail.landKind == null &&
+                            detail.areaSqm != null)
                           _InfoPill(
                             icon: Icons.square_foot,
                             label: localizations.areaShort(
@@ -538,10 +545,12 @@ class _PropertyScaffold extends ConsumerWidget {
                         localizations.sideWest,
                         formatArea(context, detail.westSideM!),
                       ),
-                      areaLabel: detail.areaSqm == null
+                      areaLabel: detail.areaQirats == null
                           ? localizations.plotDimensions
-                          : localizations.netAreaShort(
-                              formatArea(context, detail.areaSqm!),
+                          : qiratsSahmLabel(
+                              context,
+                              detail.areaQirats!,
+                              detail.areaSahm,
                             ),
                     ),
                   ],
@@ -647,57 +656,103 @@ class _PropertyScaffold extends ConsumerWidget {
                     )
                   else
                     Container(
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: colors.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          CircleAvatar(
-                            radius: 22,
-                            backgroundColor: colors.primaryContainer,
-                            child: Text(
-                              initialOf(detail.owner.fullName),
-                              style: TextStyle(
-                                color: colors.onPrimaryContainer,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  detail.owner.fullName,
-                                  style: theme.textTheme.titleSmall
-                                      ?.copyWith(fontWeight: FontWeight.w600),
-                                ),
-                                Text(
-                                  localizations.owner,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colors.onSurfaceVariant,
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 22,
+                                backgroundColor: colors.primaryContainer,
+                                child: Text(
+                                  initialOf(detail.owner.fullName),
+                                  style: TextStyle(
+                                    color: colors.onPrimaryContainer,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                              ],
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      detail.owner.fullName,
+                                      style: theme.textTheme.titleSmall
+                                          ?.copyWith(fontWeight: FontWeight.w600),
+                                    ),
+                                    Text(
+                                      localizations.owner,
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: colors.onSurfaceVariant,
+                                      ),
+                                    ),
+                                    if (detail.contact?.phone != null)
+                                      Text(
+                                        detail.contact!.phone!,
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: colors.onSurfaceVariant,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton.icon(
+                              onPressed: busy ? null : onMessage,
+                              icon: busy
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(Icons.chat_bubble_outline),
+                              label: Text(localizations.messageOwner),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          FilledButton.icon(
-                            onPressed: busy ? null : onMessage,
-                            icon: busy
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
+                          if (detail.contact != null) ...[
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                if (detail.contact!.phone != null)
+                                  OutlinedButton.icon(
+                                    onPressed: () => _openExternal(
+                                      'tel:${detail.contact!.phone!.replaceAll(RegExp(r'[^0-9+]'), '')}',
                                     ),
-                                  )
-                                : const Icon(Icons.chat_bubble_outline),
-                            label: Text(localizations.messageOwner),
-                          ),
+                                    icon: const Icon(Icons.call_outlined, size: 18),
+                                    label: Text(localizations.callSeller),
+                                  ),
+                                if (detail.contact!.whatsapp != null)
+                                  OutlinedButton.icon(
+                                    onPressed: () =>
+                                        _openExternal(whatsAppUrl(detail.contact!.whatsapp!)),
+                                    icon: const Icon(Icons.chat_outlined, size: 18),
+                                    label: Text(localizations.whatsapp),
+                                  ),
+                                if (detail.contact!.facebookUrl != null)
+                                  OutlinedButton.icon(
+                                    onPressed: () =>
+                                        _openExternal(detail.contact!.facebookUrl!),
+                                    icon: const Icon(Icons.public, size: 18),
+                                    label: Text(localizations.facebook),
+                                  ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -711,13 +766,16 @@ class _PropertyScaffold extends ConsumerWidget {
   }
 }
 
+Future<void> _openExternal(String uri) async {
+  await launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication);
+}
+
 class _Tag extends StatelessWidget {
   const _Tag({
     required this.label,
     required this.background,
     required this.foreground,
   });
-
   final String label;
   final Color background;
   final Color foreground;

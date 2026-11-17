@@ -90,6 +90,9 @@ public class Property {
     @Column(name = "area_qirats", precision = 10, scale = 2)
     private BigDecimal areaQirats;
 
+    @Column(name = "area_sahm")
+    private Integer areaSahm;
+
     @Column(name = "north_side_m", precision = 6, scale = 2)
     private BigDecimal northSideM;
 
@@ -143,27 +146,25 @@ public class Property {
     private Instant updatedAt;
 
     private static final BigDecimal QIRAT_SQM = new BigDecimal("175.03");
-    private static final BigDecimal TWO = BigDecimal.valueOf(2);
-
-    public static BigDecimal qiratsToSqm(final BigDecimal qirats) {
-        return qirats.multiply(QIRAT_SQM).setScale(2, RoundingMode.HALF_UP);
-    }
+    private static final BigDecimal SAHM_PER_QIRAT = BigDecimal.valueOf(24);
 
     /**
-     * Calculates the approximate net area from the four plot sides, averaging each opposite pair.
+     * Converts an area stated in qirats and sahm into square metres.
      *
-     * <p>The north/south sides and the east/west sides are the two opposite pairs; each pair may
-     * differ, so its mean is used before the two means are multiplied.
+     * <p>One qirat equals 175.03 m² and one qirat holds 24 sahm, so the sahm part is added
+     * as a fraction of a qirat before the conversion.
      *
-     * @return net area in square metres, or null unless all four sides are present
+     * @param qirats whole qirats of the plot
+     * @param sahm optional sahm on top of the qirats, from 0 to 23
+     * @return the area in square metres rounded to two decimals
      */
-    public BigDecimal netAreaSqm() {
-        if (northSideM == null || southSideM == null || eastSideM == null || westSideM == null) {
-            return null;
+    public static BigDecimal qiratsAndSahmToSqm(final BigDecimal qirats, final Integer sahm) {
+        BigDecimal total = qirats;
+        if (sahm != null && sahm > 0) {
+            total = total.add(BigDecimal.valueOf(sahm)
+                    .divide(SAHM_PER_QIRAT, 6, RoundingMode.HALF_UP));
         }
-        BigDecimal northSouth = northSideM.add(southSideM).divide(TWO, 4, RoundingMode.HALF_UP);
-        BigDecimal eastWest = eastSideM.add(westSideM).divide(TWO, 4, RoundingMode.HALF_UP);
-        return northSouth.multiply(eastWest).setScale(2, RoundingMode.HALF_UP);
+        return total.multiply(QIRAT_SQM).setScale(2, RoundingMode.HALF_UP);
     }
 
     /**
@@ -317,6 +318,14 @@ public class Property {
 
     public void setAreaQirats(final BigDecimal areaQirats) {
         this.areaQirats = areaQirats;
+    }
+
+    public Integer getAreaSahm() {
+        return areaSahm;
+    }
+
+    public void setAreaSahm(final Integer areaSahm) {
+        this.areaSahm = areaSahm;
     }
 
     public BigDecimal getNorthSideM() {

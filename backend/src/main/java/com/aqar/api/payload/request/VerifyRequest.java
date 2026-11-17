@@ -9,7 +9,7 @@ import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
 /**
- * Payload submitting the six digit email verification code.
+ * Payload submitting the six digit account verification code.
  *
  * @author Mohamed Sayed
  */

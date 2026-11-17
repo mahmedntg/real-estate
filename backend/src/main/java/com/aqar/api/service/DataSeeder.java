@@ -146,7 +146,7 @@ public class DataSeeder implements ApplicationRunner {
                             + "and 25 m depth. Ready for a villa or a small apartment building.",
                     "قطعة أرض مرفقة برخصة بناء سارية، بواجهة 20 م على شارع بعرض 12 م وعمق 25 م. "
                             + "جاهزة لبناء فيلا أو مبنى سكني صغير.",
-                    LandKind.BUILDING, "3200000.000", null,
+                    LandKind.BUILDING, "3200000.000", "2.86",
                     "20.00", "20.00", "25.00", "25.00", "12.00", true, true,
                     "12 m street", "Neighbouring plot",
                     "Neighbouring plot", "10 m street",
@@ -193,11 +193,14 @@ public class DataSeeder implements ApplicationRunner {
     @Transactional
     public void run(final ApplicationArguments args) {
         User owner = ensureUser("Fahad Al-Sabah", "owner@aqar.app", config.seed().demoPassword(),
-                "+965 5555 0101", Role.USER);
+                "+201005550101", Role.USER);
         final User renter = ensureUser("Sara Al-Ajmi", "renter@aqar.app", config.seed().demoPassword(),
-                "+965 5555 0202", Role.USER);
+                "+201005550202", Role.USER);
         ensureUser("Aqar Admin", config.seed().adminEmail(), config.seed().adminPassword(),
-                "+965 5555 0000", Role.ADMIN);
+                "+201005550000", Role.ADMIN);
+        if (owner.getFacebookUrl() == null) {
+            owner.setFacebookUrl("https://www.facebook.com/aqar.eg");
+        }
 
         seedProperties(owner);
         seedLand(owner);
@@ -209,7 +212,8 @@ public class DataSeeder implements ApplicationRunner {
     }
 
     /**
-     * Returns the account with the given email, creating it when it does not exist yet.
+     * Returns the demo account with the given email, creating it when it does not exist yet and
+     * always syncing its demo phone and WhatsApp number.
      *
      * @param fullName display name of the account
      * @param email email address of the account
@@ -220,11 +224,16 @@ public class DataSeeder implements ApplicationRunner {
      */
     private User ensureUser(final String fullName, final String email, final String password, final String phone,
                             final Role role) {
-        return users.findByEmailIgnoreCase(email).orElseGet(() -> {
+        return users.findByEmailIgnoreCase(email).map(existing -> {
+            existing.setPhone(phone);
+            existing.setWhatsapp(phone);
+            return users.save(existing);
+        }).orElseGet(() -> {
             User user = new User();
             user.setFullName(fullName);
             user.setEmail(email.toLowerCase());
             user.setPhone(phone);
+            user.setWhatsapp(phone);
             user.setPasswordHash(passwordEncoder.encode(password));
             user.setRole(role);
             return users.save(user);
@@ -270,7 +279,7 @@ public class DataSeeder implements ApplicationRunner {
     }
 
     /**
-     * Persists the demo land plots together with their four sides, net area and boundary descriptions.
+     * Persists the demo land plots together with their qirat area, four sides and boundaries.
      *
      * @param owner account that owns every seeded plot
      */
@@ -297,7 +306,8 @@ public class DataSeeder implements ApplicationRunner {
             property.setSouthSideM(new BigDecimal(listing.southSideM()));
             property.setEastSideM(new BigDecimal(listing.eastSideM()));
             property.setWestSideM(new BigDecimal(listing.westSideM()));
-            property.setAreaSqm(property.netAreaSqm());
+            property.setAreaSqm(property.getAreaQirats() == null ? null
+                    : Property.qiratsAndSahmToSqm(property.getAreaQirats(), property.getAreaSahm()));
             property.setStreetWidthM(new BigDecimal(listing.streetWidthM()));
             property.setBuildingPermit(listing.buildingPermit());
             property.setBoundaryNorth(listing.boundaryNorth());

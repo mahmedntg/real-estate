@@ -1,0 +1,36 @@
+{$SITE_ADDRESS} {
+	encode gzip zstd
+
+	handle /api/* {
+		reverse_proxy api:8081
+	}
+
+	handle /media/* {
+		reverse_proxy api:8081
+	}
+
+	handle /actuator/health {
+		respond "ok" 200
+	}
+
+	handle {
+		root * /srv
+		try_files {path} {path}/ /index.html
+		file_server
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+
+	@nocache path /index.html /main.dart.js /flutter_bootstrap.js /flutter_service_worker.js /manifest.json
+	header @nocache Cache-Control "no-cache"
+
+	@static path /assets/* /canvaskit/* /icons/*
+	header @static Cache-Control "public, max-age=86400"
+
+	@apk path /download/*.apk
+	header @apk Content-Disposition "attachment"
+}

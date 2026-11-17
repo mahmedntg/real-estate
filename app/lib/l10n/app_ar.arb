@@ -55,7 +55,7 @@
   "email": "البريد الإلكتروني",
   "password": "كلمة المرور",
   "fullName": "الاسم الكامل",
-  "phone": "رقم الهاتف (اختياري)",
+  "phone": "رقم الهاتف",
   "welcomeBack": "مرحبًا بعودتك",
   "loginSubtitle": "سجّل الدخول لحفظ المفضلة ومراسلة المالكين.",
   "registerSubtitle": "أنشئ حسابًا لنشر العقارات ومراسلة الآخرين.",
@@ -118,8 +118,11 @@
   "landAgricultural": "أرض زراعية",
   "landBuilding": "قطعة أرض للبناء",
   "areaQirats": "المساحة (قيراط)",
-  "qiratsShort": "{value} قيراط",
-  "feddanHint": "الفدان = 24 قيراطًا ≈ 4,200 م²",
+  "areaSahm": "السهم",
+  "feddanHint": "الفدان = 24 قيراطًا · القيراط = 24 سهمًا",
+  "sahmHint": "24 سهمًا = 1 قيراط",
+  "sahmRequiresQirats": "أدخل القيراط قبل السهم",
+  "sahmRange": "السهم بين 0 و23",
   "plotDimensions": "أبعاد الأرض",
   "plotSidesHint": "أدخل الأضلاع الأربعة كاملة أو اتركها فارغة",
   "plotSidesRequired": "أدخل الأضلاع الأربعة كاملة أو اتركها فارغة",
@@ -129,7 +132,8 @@
   "sideSouth": "القبلي (م)",
   "plotSideValue": "{label}: {value} م",
   "streetWidth": "عرض الشارع (م)",
-  "netAreaShort": "≈ {value} م² صافي",
+  "qiratsShort": "{value} قيراط",
+  "sahmShort": "{value} سهم",
   "streetWidthShort": "شارع بعرض {value} م",
   "buildingPermit": "رخصة البناء",
   "permitAvailable": "رخصة بناء متوفرة",
@@ -193,5 +197,26 @@
   "boundaryNorth": "الحد البحري",
   "boundarySouth": "الحد القبلي",
   "boundaryEast": "الحد الشرقي",
-  "boundaryWest": "الحد الغربي"
+  "boundaryWest": "الحد الغربي",
+  "ownerContact": "بيانات التواصل",
+  "callSeller": "اتصال",
+  "whatsapp": "واتساب",
+  "facebook": "فيسبوك",
+  "whatsappNumber": "رقم واتساب (اختياري)",
+  "facebookUrl": "رابط فيسبوك (اختياري)",
+  "phoneRequired": "أدخل رقم هاتفك",
+  "profileUpdated": "تم تحديث الملف الشخصي",
+  "invalidUrl": "أدخل رابطًا صحيحًا يبدأ بـ http:// أو https://",
+  "phoneChangeHint": "تغيير رقم الموبايل يتطلب رمز تحقق.",
+  "verifyNewNumber": "تأكيد رقم الموبايل الجديد",
+  "codeSentToNumber": "أدخل الرمز المكوّن من 6 أرقام المرسل على واتساب إلى {phone}",
+  "@codeSentToNumber": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadAndroidApp": "حمّل تطبيق أندرويد",
+  "downloadAndroidAppBody": "ثبّت التطبيق الأصلي على هاتفك"
 }

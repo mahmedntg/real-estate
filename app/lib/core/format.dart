@@ -40,6 +40,21 @@ String listingPrice(
   return type == ListingType.rent ? localizations.pricePerMonth(label) : label;
 }
 
-String qiratsLabel(BuildContext context, num qirats) => AppLocalizations.of(
-      context,
-    ).qiratsShort(formatArea(context, qirats));
+String qiratsSahmLabel(BuildContext context, num qirats, int? sahm) {
+  final localizations = AppLocalizations.of(context);
+  final qiratsText = localizations.qiratsShort(formatArea(context, qirats));
+  if (sahm == null || sahm == 0) {
+    return qiratsText;
+  }
+  return '$qiratsText ${localizations.sahmShort(sahm)}';
+}
+
+String whatsAppUrl(String number) =>
+    'https://wa.me/${number.replaceAll(RegExp(r'[^0-9]'), '')}';
+
+String normalizePhone(String number) {
+  final cleaned = number.replaceAll(RegExp(r'[^0-9+]'), '');
+  return cleaned.startsWith('+')
+      ? '+${cleaned.replaceAll('+', '')}'
+      : cleaned.replaceAll('+', '');
+}

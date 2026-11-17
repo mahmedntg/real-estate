@@ -186,6 +186,8 @@ class User {
     required this.email,
     required this.role,
     this.phone,
+    this.whatsapp,
+    this.facebookUrl,
   });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
@@ -193,6 +195,8 @@ class User {
         fullName: json['full_name'] as String,
         email: json['email'] as String,
         phone: json['phone'] as String?,
+        whatsapp: json['whatsapp'] as String?,
+        facebookUrl: json['facebook_url'] as String?,
         role: UserRole.fromApi(json['role'] as String),
       );
 
@@ -200,6 +204,8 @@ class User {
   final String fullName;
   final String email;
   final String? phone;
+  final String? whatsapp;
+  final String? facebookUrl;
   final UserRole role;
 
   Map<String, dynamic> toJson() => {
@@ -207,6 +213,8 @@ class User {
         'full_name': fullName,
         'email': email,
         'phone': phone,
+        'whatsapp': whatsapp,
+        'facebook_url': facebookUrl,
         'role': role.apiValue,
       };
 }
@@ -257,6 +265,20 @@ class PropertyOwner {
   final String fullName;
 }
 
+class SellerContact {
+  const SellerContact({this.phone, this.whatsapp, this.facebookUrl});
+
+  factory SellerContact.fromJson(Map<String, dynamic> json) => SellerContact(
+        phone: json['phone'] as String?,
+        whatsapp: json['whatsapp'] as String?,
+        facebookUrl: json['facebook_url'] as String?,
+      );
+
+  final String? phone;
+  final String? whatsapp;
+  final String? facebookUrl;
+}
+
 class PropertySummary {
   const PropertySummary({
     required this.id,
@@ -277,6 +299,7 @@ class PropertySummary {
     this.coverImage,
     this.landKind,
     this.areaQirats,
+    this.areaSahm,
     this.negotiable = false,
   });
 
@@ -299,6 +322,7 @@ class PropertySummary {
         createdAt: DateTime.parse(json['created_at'] as String),
         landKind: LandKind.fromApi(json['land_kind'] as String?),
         areaQirats: json['area_qirats'] as num?,
+        areaSahm: (json['area_sahm'] as num?)?.toInt(),
         negotiable: json['negotiable'] as bool? ?? false,
       );
 
@@ -320,6 +344,7 @@ class PropertySummary {
   final DateTime createdAt;
   final LandKind? landKind;
   final num? areaQirats;
+  final int? areaSahm;
   final bool negotiable;
 
   PropertySummary copyWith({bool? favorite}) => PropertySummary(
@@ -341,6 +366,7 @@ class PropertySummary {
         createdAt: createdAt,
         landKind: landKind,
         areaQirats: areaQirats,
+        areaSahm: areaSahm,
         negotiable: negotiable,
       );
 }
@@ -373,6 +399,7 @@ class PropertyDetail {
     this.longitude,
     this.landKind,
     this.areaQirats,
+    this.areaSahm,
     this.northSideM,
     this.southSideM,
     this.eastSideM,
@@ -384,6 +411,7 @@ class PropertyDetail {
     this.boundaryEast,
     this.boundaryWest,
     this.negotiable = false,
+    this.contact,
   });
 
   factory PropertyDetail.fromJson(Map<String, dynamic> json) => PropertyDetail(
@@ -416,6 +444,7 @@ class PropertyDetail {
         updatedAt: DateTime.parse(json['updated_at'] as String),
         landKind: LandKind.fromApi(json['land_kind'] as String?),
         areaQirats: json['area_qirats'] as num?,
+        areaSahm: (json['area_sahm'] as num?)?.toInt(),
         northSideM: json['north_side_m'] as num?,
         southSideM: json['south_side_m'] as num?,
         eastSideM: json['east_side_m'] as num?,
@@ -427,6 +456,9 @@ class PropertyDetail {
         boundaryEast: json['boundary_east'] as String?,
         boundaryWest: json['boundary_west'] as String?,
         negotiable: json['negotiable'] as bool? ?? false,
+        contact: json['contact'] == null
+            ? null
+            : SellerContact.fromJson(json['contact'] as Map<String, dynamic>),
       );
 
   final String id;
@@ -455,6 +487,7 @@ class PropertyDetail {
   final DateTime updatedAt;
   final LandKind? landKind;
   final num? areaQirats;
+  final int? areaSahm;
   final num? northSideM;
   final num? southSideM;
   final num? eastSideM;
@@ -466,6 +499,7 @@ class PropertyDetail {
   final String? boundaryEast;
   final String? boundaryWest;
   final bool negotiable;
+  final SellerContact? contact;
 }
 
 class PropertyDraft {
@@ -486,6 +520,7 @@ class PropertyDraft {
     this.bathrooms,
     this.landKind,
     this.areaQirats,
+    this.areaSahm,
     this.northSideM,
     this.southSideM,
     this.eastSideM,
@@ -516,6 +551,7 @@ class PropertyDraft {
         furnished: detail.furnished,
         landKind: detail.landKind,
         areaQirats: detail.areaQirats,
+        areaSahm: detail.areaSahm,
         northSideM: detail.northSideM,
         southSideM: detail.southSideM,
         eastSideM: detail.eastSideM,
@@ -545,6 +581,7 @@ class PropertyDraft {
   final bool furnished;
   final LandKind? landKind;
   final num? areaQirats;
+  final int? areaSahm;
   final num? northSideM;
   final num? southSideM;
   final num? eastSideM;
@@ -574,6 +611,7 @@ class PropertyDraft {
         'furnished': furnished,
         'land_kind': landKind?.apiValue,
         'area_qirats': areaQirats,
+        'area_sahm': areaSahm,
         'north_side_m': northSideM,
         'south_side_m': southSideM,
         'east_side_m': eastSideM,

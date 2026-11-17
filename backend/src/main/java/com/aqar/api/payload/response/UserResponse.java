@@ -26,6 +26,10 @@ public class UserResponse {
 
     private String phone;
 
+    private String whatsapp;
+
+    private String facebookUrl;
+
     private Role role;
 
     private boolean emailVerified;
@@ -42,6 +46,8 @@ public class UserResponse {
         response.setFullName(user.getFullName());
         response.setEmail(user.getEmail());
         response.setPhone(user.getPhone());
+        response.setWhatsapp(user.getWhatsapp());
+        response.setFacebookUrl(user.getFacebookUrl());
         response.setRole(user.getRole());
         response.setEmailVerified(user.isEmailVerified());
         return response;

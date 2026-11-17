@@ -26,3 +26,12 @@ Thumbs.db
 # Local secrets
 .env
 .env.local
+
+# Deployment
+deploy/.env.prod
+deploy/web/*
+!deploy/web/.gitkeep
+
+# Android release signing
+app/android/key.properties
+app/android/keystore/

@@ -149,7 +149,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 validator: (value) {
                   final phone = value?.trim() ?? '';
                   if (phone.isEmpty) {
-                    return null;
+                    return localizations.phoneRequired;
                   }
                   if (!RegExp(r'^\+?[0-9][0-9\s-]{6,19}$').hasMatch(phone)) {
                     return localizations.invalidPhone;

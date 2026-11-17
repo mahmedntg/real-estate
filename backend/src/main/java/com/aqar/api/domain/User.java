@@ -14,7 +14,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 /**
  * JPA entity mapped to the users table, holding the account name, email, phone, password hash,
- * role, email verification state and creation timestamp.
+ * role, verification state, pending phone change and creation timestamp.
  *
  * @author Mohamed Sayed
  */
@@ -35,6 +35,12 @@ public class User {
     @Column(length = 30)
     private String phone;
 
+    @Column(length = 30)
+    private String whatsapp;
+
+    @Column(name = "facebook_url", length = 300)
+    private String facebookUrl;
+
     @Column(name = "password_hash", nullable = false, length = 100)
     private String passwordHash;
 
@@ -50,6 +56,15 @@ public class User {
 
     @Column(name = "verification_expires_at")
     private Instant verificationExpiresAt;
+
+    @Column(name = "pending_phone", length = 30)
+    private String pendingPhone;
+
+    @Column(name = "pending_phone_code_hash", length = 100)
+    private String pendingPhoneCodeHash;
+
+    @Column(name = "pending_phone_expires_at")
+    private Instant pendingPhoneExpiresAt;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -81,6 +96,22 @@ public class User {
 
     public void setPhone(final String phone) {
         this.phone = phone;
+    }
+
+    public String getWhatsapp() {
+        return whatsapp;
+    }
+
+    public void setWhatsapp(final String whatsapp) {
+        this.whatsapp = whatsapp;
+    }
+
+    public String getFacebookUrl() {
+        return facebookUrl;
+    }
+
+    public void setFacebookUrl(final String facebookUrl) {
+        this.facebookUrl = facebookUrl;
     }
 
     public String getPasswordHash() {
@@ -121,6 +152,30 @@ public class User {
 
     public void setVerificationExpiresAt(final Instant verificationExpiresAt) {
         this.verificationExpiresAt = verificationExpiresAt;
+    }
+
+    public String getPendingPhone() {
+        return pendingPhone;
+    }
+
+    public void setPendingPhone(final String pendingPhone) {
+        this.pendingPhone = pendingPhone;
+    }
+
+    public String getPendingPhoneCodeHash() {
+        return pendingPhoneCodeHash;
+    }
+
+    public void setPendingPhoneCodeHash(final String pendingPhoneCodeHash) {
+        this.pendingPhoneCodeHash = pendingPhoneCodeHash;
+    }
+
+    public Instant getPendingPhoneExpiresAt() {
+        return pendingPhoneExpiresAt;
+    }
+
+    public void setPendingPhoneExpiresAt(final Instant pendingPhoneExpiresAt) {
+        this.pendingPhoneExpiresAt = pendingPhoneExpiresAt;
     }
 
     public Instant getCreatedAt() {
