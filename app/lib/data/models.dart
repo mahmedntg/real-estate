@@ -48,8 +48,8 @@ class Area {
 
   factory Area.fromJson(Map<String, dynamic> json) => Area(
         code: json['code'] as String,
-        nameEn: json['nameEn'] as String,
-        nameAr: json['nameAr'] as String,
+        nameEn: json['name_en'] as String,
+        nameAr: json['name_ar'] as String,
       );
 
   final String code;
@@ -67,8 +67,8 @@ class Governorate {
 
   factory Governorate.fromJson(Map<String, dynamic> json) => Governorate(
         code: json['code'] as String,
-        nameEn: json['nameEn'] as String,
-        nameAr: json['nameAr'] as String,
+        nameEn: json['name_en'] as String,
+        nameAr: json['name_ar'] as String,
         areas: [
           for (final area in (json['areas'] as List? ?? const []))
             Area.fromJson(area as Map<String, dynamic>),
@@ -96,13 +96,13 @@ class Country {
 
   factory Country.fromJson(Map<String, dynamic> json) => Country(
         code: json['code'] as String,
-        nameEn: json['nameEn'] as String,
-        nameAr: json['nameAr'] as String,
-        currencyCode: json['currencyCode'] as String,
-        currencySymbolEn: json['currencySymbolEn'] as String,
-        currencySymbolAr: json['currencySymbolAr'] as String,
-        taglineEn: json['taglineEn'] as String,
-        taglineAr: json['taglineAr'] as String,
+        nameEn: json['name_en'] as String,
+        nameAr: json['name_ar'] as String,
+        currencyCode: json['currency_code'] as String,
+        currencySymbolEn: json['currency_symbol_en'] as String,
+        currencySymbolAr: json['currency_symbol_ar'] as String,
+        taglineEn: json['tagline_en'] as String,
+        taglineAr: json['tagline_ar'] as String,
         governorates: [
           for (final governorate in (json['governorates'] as List? ?? const []))
             Governorate.fromJson(governorate as Map<String, dynamic>),
@@ -190,7 +190,7 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) => User(
         id: json['id'] as String,
-        fullName: json['fullName'] as String,
+        fullName: json['full_name'] as String,
         email: json['email'] as String,
         phone: json['phone'] as String?,
         role: UserRole.fromApi(json['role'] as String),
@@ -204,7 +204,7 @@ class User {
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'fullName': fullName,
+        'full_name': fullName,
         'email': email,
         'phone': phone,
         'role': role.apiValue,
@@ -230,7 +230,7 @@ class RegisterResult {
 
   factory RegisterResult.fromJson(Map<String, dynamic> json) => RegisterResult(
         email: json['email'] as String,
-        verificationRequired: json['verificationRequired'] as bool? ?? false,
+        verificationRequired: json['verification_required'] as bool? ?? false,
       );
 
   final String email;
@@ -251,7 +251,7 @@ class PropertyOwner {
   const PropertyOwner({required this.id, required this.fullName});
 
   factory PropertyOwner.fromJson(Map<String, dynamic> json) =>
-      PropertyOwner(id: json['id'] as String, fullName: json['fullName'] as String);
+      PropertyOwner(id: json['id'] as String, fullName: json['full_name'] as String);
 
   final String id;
   final String fullName;
@@ -282,23 +282,23 @@ class PropertySummary {
 
   factory PropertySummary.fromJson(Map<String, dynamic> json) => PropertySummary(
         id: json['id'] as String,
-        titleEn: json['titleEn'] as String,
-        titleAr: json['titleAr'] as String,
-        propertyType: PropertyType.fromApi(json['propertyType'] as String),
-        listingType: ListingType.fromApi(json['listingType'] as String),
-        countryCode: json['countryCode'] as String,
-        governorateCode: json['governorateCode'] as String,
-        areaCode: json['areaCode'] as String?,
+        titleEn: json['title_en'] as String,
+        titleAr: json['title_ar'] as String,
+        propertyType: PropertyType.fromApi(json['property_type'] as String),
+        listingType: ListingType.fromApi(json['listing_type'] as String),
+        countryCode: json['country_code'] as String,
+        governorateCode: json['governorate_code'] as String,
+        areaCode: json['area_code'] as String?,
         price: json['price'] as num,
-        areaSqm: json['areaSqm'] as num?,
+        areaSqm: json['area_sqm'] as num?,
         bedrooms: (json['bedrooms'] as num?)?.toInt(),
         bathrooms: (json['bathrooms'] as num?)?.toInt(),
         furnished: json['furnished'] as bool? ?? false,
-        coverImage: json['coverImage'] as String?,
+        coverImage: json['cover_image'] as String?,
         favorite: json['favorite'] as bool? ?? false,
-        createdAt: DateTime.parse(json['createdAt'] as String),
-        landKind: LandKind.fromApi(json['landKind'] as String?),
-        areaQirats: json['areaQirats'] as num?,
+        createdAt: DateTime.parse(json['created_at'] as String),
+        landKind: LandKind.fromApi(json['land_kind'] as String?),
+        areaQirats: json['area_qirats'] as num?,
         negotiable: json['negotiable'] as bool? ?? false,
       );
 
@@ -373,8 +373,10 @@ class PropertyDetail {
     this.longitude,
     this.landKind,
     this.areaQirats,
-    this.frontageM,
-    this.depthM,
+    this.northSideM,
+    this.southSideM,
+    this.eastSideM,
+    this.westSideM,
     this.streetWidthM,
     this.buildingPermit,
     this.boundaryNorth,
@@ -386,17 +388,17 @@ class PropertyDetail {
 
   factory PropertyDetail.fromJson(Map<String, dynamic> json) => PropertyDetail(
         id: json['id'] as String,
-        titleEn: json['titleEn'] as String,
-        titleAr: json['titleAr'] as String,
-        descriptionEn: json['descriptionEn'] as String,
-        descriptionAr: json['descriptionAr'] as String,
-        propertyType: PropertyType.fromApi(json['propertyType'] as String),
-        listingType: ListingType.fromApi(json['listingType'] as String),
-        countryCode: json['countryCode'] as String,
-        governorateCode: json['governorateCode'] as String,
-        areaCode: json['areaCode'] as String?,
+        titleEn: json['title_en'] as String,
+        titleAr: json['title_ar'] as String,
+        descriptionEn: json['description_en'] as String,
+        descriptionAr: json['description_ar'] as String,
+        propertyType: PropertyType.fromApi(json['property_type'] as String),
+        listingType: ListingType.fromApi(json['listing_type'] as String),
+        countryCode: json['country_code'] as String,
+        governorateCode: json['governorate_code'] as String,
+        areaCode: json['area_code'] as String?,
         price: json['price'] as num,
-        areaSqm: json['areaSqm'] as num?,
+        areaSqm: json['area_sqm'] as num?,
         bedrooms: (json['bedrooms'] as num?)?.toInt(),
         bathrooms: (json['bathrooms'] as num?)?.toInt(),
         furnished: json['furnished'] as bool? ?? false,
@@ -406,22 +408,24 @@ class PropertyDetail {
           for (final image in (json['images'] as List? ?? const []))
             PropertyImage.fromJson(image as Map<String, dynamic>),
         ],
-        videoUrl: json['videoUrl'] as String?,
+        videoUrl: json['video_url'] as String?,
         owner: PropertyOwner.fromJson(json['owner'] as Map<String, dynamic>),
         favorite: json['favorite'] as bool? ?? false,
         mine: json['mine'] as bool? ?? false,
-        createdAt: DateTime.parse(json['createdAt'] as String),
-        updatedAt: DateTime.parse(json['updatedAt'] as String),
-        landKind: LandKind.fromApi(json['landKind'] as String?),
-        areaQirats: json['areaQirats'] as num?,
-        frontageM: json['frontageM'] as num?,
-        depthM: json['depthM'] as num?,
-        streetWidthM: json['streetWidthM'] as num?,
-        buildingPermit: json['buildingPermit'] as bool?,
-        boundaryNorth: json['boundaryNorth'] as String?,
-        boundarySouth: json['boundarySouth'] as String?,
-        boundaryEast: json['boundaryEast'] as String?,
-        boundaryWest: json['boundaryWest'] as String?,
+        createdAt: DateTime.parse(json['created_at'] as String),
+        updatedAt: DateTime.parse(json['updated_at'] as String),
+        landKind: LandKind.fromApi(json['land_kind'] as String?),
+        areaQirats: json['area_qirats'] as num?,
+        northSideM: json['north_side_m'] as num?,
+        southSideM: json['south_side_m'] as num?,
+        eastSideM: json['east_side_m'] as num?,
+        westSideM: json['west_side_m'] as num?,
+        streetWidthM: json['street_width_m'] as num?,
+        buildingPermit: json['building_permit'] as bool?,
+        boundaryNorth: json['boundary_north'] as String?,
+        boundarySouth: json['boundary_south'] as String?,
+        boundaryEast: json['boundary_east'] as String?,
+        boundaryWest: json['boundary_west'] as String?,
         negotiable: json['negotiable'] as bool? ?? false,
       );
 
@@ -451,8 +455,10 @@ class PropertyDetail {
   final DateTime updatedAt;
   final LandKind? landKind;
   final num? areaQirats;
-  final num? frontageM;
-  final num? depthM;
+  final num? northSideM;
+  final num? southSideM;
+  final num? eastSideM;
+  final num? westSideM;
   final num? streetWidthM;
   final bool? buildingPermit;
   final String? boundaryNorth;
@@ -480,8 +486,10 @@ class PropertyDraft {
     this.bathrooms,
     this.landKind,
     this.areaQirats,
-    this.frontageM,
-    this.depthM,
+    this.northSideM,
+    this.southSideM,
+    this.eastSideM,
+    this.westSideM,
     this.streetWidthM,
     this.buildingPermit,
     this.boundaryNorth,
@@ -508,8 +516,10 @@ class PropertyDraft {
         furnished: detail.furnished,
         landKind: detail.landKind,
         areaQirats: detail.areaQirats,
-        frontageM: detail.frontageM,
-        depthM: detail.depthM,
+        northSideM: detail.northSideM,
+        southSideM: detail.southSideM,
+        eastSideM: detail.eastSideM,
+        westSideM: detail.westSideM,
         streetWidthM: detail.streetWidthM,
         buildingPermit: detail.buildingPermit,
         boundaryNorth: detail.boundaryNorth,
@@ -535,8 +545,10 @@ class PropertyDraft {
   final bool furnished;
   final LandKind? landKind;
   final num? areaQirats;
-  final num? frontageM;
-  final num? depthM;
+  final num? northSideM;
+  final num? southSideM;
+  final num? eastSideM;
+  final num? westSideM;
   final num? streetWidthM;
   final bool? buildingPermit;
   final String? boundaryNorth;
@@ -546,30 +558,32 @@ class PropertyDraft {
   final bool negotiable;
 
   Map<String, dynamic> toJson() => {
-        'titleEn': titleEn,
-        'titleAr': titleAr,
-        'descriptionEn': descriptionEn,
-        'descriptionAr': descriptionAr,
-        'propertyType': propertyType.apiValue,
-        'listingType': listingType.apiValue,
-        'countryCode': countryCode,
-        'governorateCode': governorateCode,
-        'areaCode': areaCode,
+        'title_en': titleEn,
+        'title_ar': titleAr,
+        'description_en': descriptionEn,
+        'description_ar': descriptionAr,
+        'property_type': propertyType.apiValue,
+        'listing_type': listingType.apiValue,
+        'country_code': countryCode,
+        'governorate_code': governorateCode,
+        'area_code': areaCode,
         'price': price,
-        'areaSqm': areaSqm,
+        'area_sqm': areaSqm,
         'bedrooms': bedrooms,
         'bathrooms': bathrooms,
         'furnished': furnished,
-        'landKind': landKind?.apiValue,
-        'areaQirats': areaQirats,
-        'frontageM': frontageM,
-        'depthM': depthM,
-        'streetWidthM': streetWidthM,
-        'buildingPermit': buildingPermit,
-        'boundaryNorth': boundaryNorth,
-        'boundarySouth': boundarySouth,
-        'boundaryEast': boundaryEast,
-        'boundaryWest': boundaryWest,
+        'land_kind': landKind?.apiValue,
+        'area_qirats': areaQirats,
+        'north_side_m': northSideM,
+        'south_side_m': southSideM,
+        'east_side_m': eastSideM,
+        'west_side_m': westSideM,
+        'street_width_m': streetWidthM,
+        'building_permit': buildingPermit,
+        'boundary_north': boundaryNorth,
+        'boundary_south': boundarySouth,
+        'boundary_east': boundaryEast,
+        'boundary_west': boundaryWest,
         'negotiable': negotiable,
       };
 }
@@ -591,18 +605,18 @@ class Conversation {
 
   factory Conversation.fromJson(Map<String, dynamic> json) => Conversation(
         id: json['id'] as String,
-        propertyId: json['propertyId'] as String,
-        propertyTitleEn: json['propertyTitleEn'] as String,
-        propertyTitleAr: json['propertyTitleAr'] as String,
-        coverImage: json['coverImage'] as String?,
-        otherPartyId: json['otherPartyId'] as String,
-        otherPartyName: json['otherPartyName'] as String,
-        ownerView: json['ownerView'] as bool? ?? false,
-        lastMessage: json['lastMessage'] as String? ?? '',
-        lastMessageAt: json['lastMessageAt'] == null
+        propertyId: json['property_id'] as String,
+        propertyTitleEn: json['property_title_en'] as String,
+        propertyTitleAr: json['property_title_ar'] as String,
+        coverImage: json['cover_image'] as String?,
+        otherPartyId: json['other_party_id'] as String,
+        otherPartyName: json['other_party_name'] as String,
+        ownerView: json['owner_view'] as bool? ?? false,
+        lastMessage: json['last_message'] as String? ?? '',
+        lastMessageAt: json['last_message_at'] == null
             ? null
-            : DateTime.parse(json['lastMessageAt'] as String),
-        unreadCount: (json['unreadCount'] as num?)?.toInt() ?? 0,
+            : DateTime.parse(json['last_message_at'] as String),
+        unreadCount: (json['unread_count'] as num?)?.toInt() ?? 0,
       );
 
   final String id;
@@ -631,12 +645,12 @@ class Message {
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
         id: json['id'] as String,
-        senderId: json['senderId'] as String,
-        senderName: json['senderName'] as String,
+        senderId: json['sender_id'] as String,
+        senderName: json['sender_name'] as String,
         body: json['body'] as String,
         read: json['read'] as bool? ?? false,
         mine: json['mine'] as bool? ?? false,
-        createdAt: DateTime.parse(json['createdAt'] as String),
+        createdAt: DateTime.parse(json['created_at'] as String),
       );
 
   final String id;
@@ -669,9 +683,9 @@ class PageResult<T> {
         ],
         page: (json['page'] as num?)?.toInt() ?? 0,
         size: (json['size'] as num?)?.toInt() ?? 0,
-        totalElements: (json['totalElements'] as num?)?.toInt() ?? 0,
-        totalPages: (json['totalPages'] as num?)?.toInt() ?? 0,
-        hasNext: json['hasNext'] as bool? ?? false,
+        totalElements: (json['total_elements'] as num?)?.toInt() ?? 0,
+        totalPages: (json['total_pages'] as num?)?.toInt() ?? 0,
+        hasNext: json['has_next'] as bool? ?? false,
       );
 
   final List<T> items;

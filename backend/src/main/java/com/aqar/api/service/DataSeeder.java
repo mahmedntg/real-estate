@@ -134,8 +134,8 @@ public class DataSeeder implements ApplicationRunner {
                             + "Suitable for seasonal crops or a smallholding.",
                     "أرض زراعية مستوية بها خط ري من مياه النيل، مساحتها 10 قيراط "
                             + "(نحو 1,750 م²) بواجهة 60 م وطريق بعرض 8 م. مناسبة للمحاصيل الموسمية أو الحيازة الصغيرة.",
-                    LandKind.AGRICULTURAL, "1250000.000", "10.00", "1750.30",
-                    "60.00", "29.17", "8.00", null, true,
+                    LandKind.AGRICULTURAL, "1250000.000", "10.00",
+                    "60.00", "60.00", "29.17", "29.17", "8.00", null, true,
                     "Nile irrigation canal", "Neighbouring farm plot",
                     "8 m agricultural road", "Neighbouring farm plot",
                     "EG", "GIZA", null, 29.9935, 31.1570),
@@ -146,8 +146,8 @@ public class DataSeeder implements ApplicationRunner {
                             + "and 25 m depth. Ready for a villa or a small apartment building.",
                     "قطعة أرض مرفقة برخصة بناء سارية، بواجهة 20 م على شارع بعرض 12 م وعمق 25 م. "
                             + "جاهزة لبناء فيلا أو مبنى سكني صغير.",
-                    LandKind.BUILDING, "3200000.000", null, "500.00",
-                    "20.00", "25.00", "12.00", true, true,
+                    LandKind.BUILDING, "3200000.000", null,
+                    "20.00", "20.00", "25.00", "25.00", "12.00", true, true,
                     "12 m street", "Neighbouring plot",
                     "Neighbouring plot", "10 m street",
                     "EG", "GIZA", "OCTOBER_6", 29.9285, 30.9188));
@@ -270,7 +270,7 @@ public class DataSeeder implements ApplicationRunner {
     }
 
     /**
-     * Persists the demo land plots together with their qirat area and boundary descriptions.
+     * Persists the demo land plots together with their four sides, net area and boundary descriptions.
      *
      * @param owner account that owns every seeded plot
      */
@@ -290,12 +290,14 @@ public class DataSeeder implements ApplicationRunner {
             property.setPropertyType(PropertyType.LAND);
             property.setListingType(ListingType.SALE);
             property.setPrice(new BigDecimal(listing.price()));
-            property.setAreaSqm(new BigDecimal(listing.areaSqm()));
             property.setLandKind(listing.landKind());
             property.setAreaQirats(
                     listing.areaQirats() == null ? null : new BigDecimal(listing.areaQirats()));
-            property.setFrontageM(new BigDecimal(listing.frontageM()));
-            property.setDepthM(new BigDecimal(listing.depthM()));
+            property.setNorthSideM(new BigDecimal(listing.northSideM()));
+            property.setSouthSideM(new BigDecimal(listing.southSideM()));
+            property.setEastSideM(new BigDecimal(listing.eastSideM()));
+            property.setWestSideM(new BigDecimal(listing.westSideM()));
+            property.setAreaSqm(property.netAreaSqm());
             property.setStreetWidthM(new BigDecimal(listing.streetWidthM()));
             property.setBuildingPermit(listing.buildingPermit());
             property.setBoundaryNorth(listing.boundaryNorth());
@@ -400,7 +402,8 @@ public class DataSeeder implements ApplicationRunner {
     }
 
     /**
-     * Demo land template with bilingual text, measurements and the four boundary descriptions.
+     * Demo land template with bilingual text, the four measured sides, the street width and the
+     * four boundary descriptions.
      *
      * <p>Values are converted to entities by {@code seedLand}.
      *
@@ -414,9 +417,10 @@ public class DataSeeder implements ApplicationRunner {
             LandKind landKind,
             String price,
             String areaQirats,
-            String areaSqm,
-            String frontageM,
-            String depthM,
+            String northSideM,
+            String southSideM,
+            String eastSideM,
+            String westSideM,
             String streetWidthM,
             Boolean buildingPermit,
             boolean negotiable,

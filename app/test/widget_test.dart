@@ -2,9 +2,11 @@ import 'package:aqar_app/core/format.dart';
 import 'package:aqar_app/core/labels.dart';
 import 'package:aqar_app/core/location_fields.dart';
 import 'package:aqar_app/core/session.dart';
+import 'package:aqar_app/core/ui.dart';
 import 'package:aqar_app/data/models.dart';
 import 'package:aqar_app/features/auth/register_page.dart';
 import 'package:aqar_app/features/auth/verify_page.dart';
+import 'package:aqar_app/features/property/land_diagram.dart';
 import 'package:aqar_app/l10n/generated/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -286,40 +288,91 @@ void main() {
   test('land boundary lines survive the API round-trip', () {
     final detail = PropertyDetail.fromJson({
       'id': 'p1',
-      'titleEn': 'Plot',
-      'titleAr': '',
-      'descriptionEn': 'A plot.',
-      'descriptionAr': '',
-      'propertyType': 'LAND',
-      'listingType': 'SALE',
-      'countryCode': 'EG',
-      'governorateCode': 'GIZA',
-      'areaCode': 'OCTOBER_6',
+      'title_en': 'Plot',
+      'title_ar': '',
+      'description_en': 'A plot.',
+      'description_ar': '',
+      'property_type': 'LAND',
+      'listing_type': 'SALE',
+      'country_code': 'EG',
+      'governorate_code': 'GIZA',
+      'area_code': 'OCTOBER_6',
       'price': 3200000,
-      'areaSqm': 500,
+      'area_sqm': 500,
       'furnished': false,
       'images': <Map<String, dynamic>>[],
-      'owner': {'id': 'u1', 'fullName': 'Owner'},
+      'owner': {'id': 'u1', 'full_name': 'Owner'},
       'favorite': false,
       'mine': false,
-      'createdAt': '2026-11-16T10:00:00Z',
-      'updatedAt': '2026-11-16T10:00:00Z',
-      'landKind': 'BUILDING',
-      'buildingPermit': true,
+      'created_at': '2026-11-16T10:00:00Z',
+      'updated_at': '2026-11-16T10:00:00Z',
+      'land_kind': 'BUILDING',
+      'building_permit': true,
       'negotiable': true,
-      'boundaryNorth': '12 m street',
-      'boundarySouth': 'Neighbouring plot',
-      'boundaryEast': 'Neighbouring plot',
-      'boundaryWest': '10 m street',
+      'north_side_m': 20,
+      'south_side_m': 22,
+      'east_side_m': 26,
+      'west_side_m': 25,
+      'boundary_north': '12 m street',
+      'boundary_south': 'Neighbouring plot',
+      'boundary_east': 'Neighbouring plot',
+      'boundary_west': '10 m street',
     });
 
+    expect(detail.northSideM, 20);
+    expect(detail.southSideM, 22);
+    expect(detail.westSideM, 25);
     expect(detail.boundaryNorth, '12 m street');
     expect(detail.boundaryWest, '10 m street');
 
     final payload = PropertyDraft.fromDetail(detail).toJson();
-    expect(payload['boundaryNorth'], '12 m street');
-    expect(payload['boundarySouth'], 'Neighbouring plot');
-    expect(payload['boundaryEast'], 'Neighbouring plot');
-    expect(payload['boundaryWest'], '10 m street');
+    expect(payload['north_side_m'], 20);
+    expect(payload['south_side_m'], 22);
+    expect(payload['east_side_m'], 26);
+    expect(payload['west_side_m'], 25);
+    expect(payload['boundary_north'], '12 m street');
+    expect(payload['boundary_south'], 'Neighbouring plot');
+    expect(payload['boundary_east'], 'Neighbouring plot');
+    expect(payload['boundary_west'], '10 m street');
+  });
+
+  testWidgets('land diagram renders all four sides and the net area',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(360, 640));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: LandDiagram(
+            northLabel: 'North: 50 m',
+            southLabel: 'South: 60 m',
+            eastLabel: 'East: 30 m',
+            westLabel: 'West: 26 m',
+            areaLabel: '≈ 1,540 m²',
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(LandDiagram), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('listings without a photo show the bundled default image',
+      (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: SizedBox(
+          width: 160,
+          height: 100,
+          child: AppNetworkImage(''),
+        ),
+      ),
+    );
+
+    final image = tester.widget<Image>(find.byType(Image));
+    expect((image.image as AssetImage).assetName, defaultListingImage);
+    expect(tester.takeException(), isNull);
   });
 }

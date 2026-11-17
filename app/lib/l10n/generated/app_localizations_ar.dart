@@ -414,17 +414,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get feddanHint => 'الفدان = 24 قيراطًا ≈ 4,200 م²';
 
   @override
-  String get frontage => 'الواجهة (م)';
+  String get plotDimensions => 'أبعاد الأرض';
 
   @override
-  String get depth => 'العمق (م)';
+  String get plotSidesHint => 'أدخل الأضلاع الأربعة كاملة أو اتركها فارغة';
+
+  @override
+  String get plotSidesRequired => 'أدخل الأضلاع الأربعة كاملة أو اتركها فارغة';
+
+  @override
+  String get sideEast => 'الشرقي (م)';
+
+  @override
+  String get sideWest => 'الغربي (م)';
+
+  @override
+  String get sideNorth => 'البحري (م)';
+
+  @override
+  String get sideSouth => 'القبلي (م)';
+
+  @override
+  String plotSideValue(String label, String value) {
+    return '$label: $value م';
+  }
 
   @override
   String get streetWidth => 'عرض الشارع (م)';
 
   @override
-  String dimensionsShort(String frontage, String depth) {
-    return '$frontage × $depth م';
+  String netAreaShort(String value) {
+    return '≈ $value م² صافي';
   }
 
   @override

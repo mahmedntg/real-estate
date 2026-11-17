@@ -77,9 +77,13 @@ public class PropertyDetailResponse {
 
     private BigDecimal areaQirats;
 
-    private BigDecimal frontageM;
+    private BigDecimal northSideM;
 
-    private BigDecimal depthM;
+    private BigDecimal southSideM;
+
+    private BigDecimal eastSideM;
+
+    private BigDecimal westSideM;
 
     private BigDecimal streetWidthM;
 

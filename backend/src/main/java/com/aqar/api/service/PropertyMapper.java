@@ -85,8 +85,10 @@ public class PropertyMapper {
         response.setUpdatedAt(property.getUpdatedAt());
         response.setLandKind(property.getLandKind());
         response.setAreaQirats(property.getAreaQirats());
-        response.setFrontageM(property.getFrontageM());
-        response.setDepthM(property.getDepthM());
+        response.setNorthSideM(property.getNorthSideM());
+        response.setSouthSideM(property.getSouthSideM());
+        response.setEastSideM(property.getEastSideM());
+        response.setWestSideM(property.getWestSideM());
         response.setStreetWidthM(property.getStreetWidthM());
         response.setBuildingPermit(property.getBuildingPermit());
         response.setBoundaryNorth(property.getBoundaryNorth());

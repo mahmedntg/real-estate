@@ -818,17 +818,53 @@ abstract class AppLocalizations {
   /// **'1 feddan = 24 qirats ≈ 4,200 m²'**
   String get feddanHint;
 
-  /// No description provided for @frontage.
+  /// No description provided for @plotDimensions.
   ///
   /// In en, this message translates to:
-  /// **'Frontage (m)'**
-  String get frontage;
+  /// **'Plot dimensions'**
+  String get plotDimensions;
 
-  /// No description provided for @depth.
+  /// No description provided for @plotSidesHint.
   ///
   /// In en, this message translates to:
-  /// **'Depth (m)'**
-  String get depth;
+  /// **'Enter all four sides, or leave them empty'**
+  String get plotSidesHint;
+
+  /// No description provided for @plotSidesRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter all four plot sides, or leave them empty'**
+  String get plotSidesRequired;
+
+  /// No description provided for @sideEast.
+  ///
+  /// In en, this message translates to:
+  /// **'East (m)'**
+  String get sideEast;
+
+  /// No description provided for @sideWest.
+  ///
+  /// In en, this message translates to:
+  /// **'West (m)'**
+  String get sideWest;
+
+  /// No description provided for @sideNorth.
+  ///
+  /// In en, this message translates to:
+  /// **'North (m)'**
+  String get sideNorth;
+
+  /// No description provided for @sideSouth.
+  ///
+  /// In en, this message translates to:
+  /// **'South (m)'**
+  String get sideSouth;
+
+  /// No description provided for @plotSideValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}: {value} m'**
+  String plotSideValue(String label, String value);
 
   /// No description provided for @streetWidth.
   ///
@@ -836,11 +872,11 @@ abstract class AppLocalizations {
   /// **'Street width (m)'**
   String get streetWidth;
 
-  /// No description provided for @dimensionsShort.
+  /// No description provided for @netAreaShort.
   ///
   /// In en, this message translates to:
-  /// **'{frontage} × {depth} m'**
-  String dimensionsShort(String frontage, String depth);
+  /// **'≈ {value} m² net'**
+  String netAreaShort(String value);
 
   /// No description provided for @streetWidthShort.
   ///

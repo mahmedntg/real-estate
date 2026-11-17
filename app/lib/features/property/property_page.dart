@@ -14,6 +14,7 @@ import '../chats/chats_controller.dart';
 import '../favorites/favorites_controller.dart';
 import '../home/home_controller.dart';
 import '../listings/my_listings_controller.dart';
+import 'land_diagram.dart';
 import 'property_controller.dart';
 import 'property_video.dart';
 
@@ -455,7 +456,10 @@ class _PropertyScaffold extends ConsumerWidget {
                       detail.bathrooms != null ||
                       detail.areaSqm != null ||
                       detail.areaQirats != null ||
-                      (detail.frontageM != null && detail.depthM != null) ||
+                      (detail.northSideM != null &&
+                          detail.southSideM != null &&
+                          detail.eastSideM != null &&
+                          detail.westSideM != null) ||
                       detail.streetWidthM != null ||
                       detail.buildingPermit != null) ...[
                     const SizedBox(height: 16),
@@ -479,20 +483,12 @@ class _PropertyScaffold extends ConsumerWidget {
                           _InfoPill(
                             icon: Icons.landscape_outlined,
                             label: qiratsLabel(context, detail.areaQirats!),
-                          )
-                        else if (detail.areaSqm != null)
+                          ),
+                        if (detail.areaSqm != null)
                           _InfoPill(
                             icon: Icons.square_foot,
                             label: localizations.areaShort(
                               formatArea(context, detail.areaSqm!),
-                            ),
-                          ),
-                        if (detail.frontageM != null && detail.depthM != null)
-                          _InfoPill(
-                            icon: Icons.straighten,
-                            label: localizations.dimensionsShort(
-                              formatArea(context, detail.frontageM!),
-                              formatArea(context, detail.depthM!),
                             ),
                           ),
                         if (detail.streetWidthM != null)
@@ -512,6 +508,41 @@ class _PropertyScaffold extends ConsumerWidget {
                                 : localizations.permitMissing,
                           ),
                       ],
+                    ),
+                  ],
+                  if (detail.northSideM != null &&
+                      detail.southSideM != null &&
+                      detail.eastSideM != null &&
+                      detail.westSideM != null) ...[
+                    const SizedBox(height: 20),
+                    Text(
+                      localizations.plotDimensions,
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    LandDiagram(
+                      northLabel: localizations.plotSideValue(
+                        localizations.sideNorth,
+                        formatArea(context, detail.northSideM!),
+                      ),
+                      southLabel: localizations.plotSideValue(
+                        localizations.sideSouth,
+                        formatArea(context, detail.southSideM!),
+                      ),
+                      eastLabel: localizations.plotSideValue(
+                        localizations.sideEast,
+                        formatArea(context, detail.eastSideM!),
+                      ),
+                      westLabel: localizations.plotSideValue(
+                        localizations.sideWest,
+                        formatArea(context, detail.westSideM!),
+                      ),
+                      areaLabel: detail.areaSqm == null
+                          ? localizations.plotDimensions
+                          : localizations.netAreaShort(
+                              formatArea(context, detail.areaSqm!),
+                            ),
                     ),
                   ],
                   if (detail.boundaryNorth != null ||

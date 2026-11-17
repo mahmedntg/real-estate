@@ -75,8 +75,9 @@ The login screen has one-tap chips that fill the owner and renter credentials.
 - Auth with JWT, persisted session, redirect-back after login, and email verification: registration emails a 6-digit code, unverified accounts cannot log in, and the code can be re-sent.
 - Favorites with optimistic toggling.
 - My listings: create, edit and delete, up to 8 photos and one optional video (MP4/WebM/MOV, 50 MB) per listing.
+- Listings without photos fall back to a bundled illustrated cover on cards, chat rows and the detail header.
 - Titles and descriptions only need one language: at least one title and one description are required, and the UI falls back to the language that was provided.
-- Land listings: agricultural plots priced and sized in qirats, building plots with permit status, both with dimensions, street width and a negotiable-price flag.
+- Land listings: agricultural plots priced and sized in qirats, building plots with permit status, both with the four plot sides named by direction (bahri, qibli, east and west), street width and a negotiable-price flag; the detail page draws the plot with an arrow per side and the approximate net area in m².
 - Messaging: start a conversation from a listing, threaded chat, unread badges, polling refresh.
 - Profile: language switch (English / Arabic with RTL), theme switch (system / light / dark), logout.
 - Admin role is surfaced on the profile screen; listing ownership is enforced server-side.
@@ -87,11 +88,11 @@ The login screen has one-tap chips that fill the owner and renter credentials.
 
 Only countries with `active = true` are served and accepted. `V5__egypt_only.sql` sets Kuwait inactive; to re-open it (or add a market), insert or update rows in `countries`, `governorates` and `areas` — no code changes. The app defaults to Egypt, falls back to the first active country if the stored one disappears, and hides the country switcher while only one country is active.
 
-JSON bodies use **snake_case** field names throughout (`country_code`, `area_qirats`, `verification_required`), matching the Warba convention; query parameters stay camelCase (`listingType`, `minPrice`). Listings reference locations by **codes**, not database ids: `country`, `governorate` and `area` query parameters on `GET /properties`, and `country_code`, `governorate_code`, `area_code` in listing payloads. The API rejects writes whose governorate does not belong to the country (or whose country is inactive), or whose area does not belong to the governorate, with `400 Invalid location`; reads are scoped to active markets.
+JSON bodies use **snake_case** field names throughout (`country_code`, `area_qirats`, `verification_required`), matching the Warba convention; query parameters stay camelCase (`listingType`, `minPrice`). The Flutter client reads and writes the same snake_case keys in every model and request body. Listings reference locations by **codes**, not database ids: `country`, `governorate` and `area` query parameters on `GET /properties`, and `country_code`, `governorate_code`, `area_code` in listing payloads. The API rejects writes whose governorate does not belong to the country (or whose country is inactive), or whose area does not belong to the governorate, with `400 Invalid location`; reads are scoped to active markets.
 
 ## Registration and verification
 
-`POST /auth/register` creates the account unverified and returns `{ "email", "verification_required": true }`. A 6-digit code (15-minute TTL, stored as a SHA-256 hash) is emailed to the address; `POST /auth/verify` with `{ "email", "code" }` marks the address verified and returns the JWT, and `POST /auth/resend` emails a new code. Login is refused with `403 Email not verified` until then.
+`POST /auth/register` creates the account unverified and returns `{ "email": "you@example.com", "verification_required": true }`. A 6-digit code (15-minute TTL, stored as a SHA-256 hash) is emailed to the address; `POST /auth/verify` with `{ "email", "code" }` marks the address verified and returns the JWT, and `POST /auth/resend` emails a new code. Login is refused with `403 Email not verified` until then.
 
 Codes go out over SMTP (STARTTLS + auth) when `AQAR_SMTP_HOST` is set. For Gmail use `smtp.gmail.com`, port `587`, the account address as username and a 16-character Google App Password. The code is never returned in an API response and never shown in the app; with no SMTP configured it is written to the API log only, so local registration can still be tested. `aqar.mail.expose-code` (default `false`) exists solely as a dev escape hatch that puts the code back in the response.
 
@@ -109,14 +110,15 @@ Titles and descriptions are optional per language, but at least one of each is r
 | --- | --- | --- |
 | `land_kind` | land | `AGRICULTURAL` or `BUILDING` |
 | `area_qirats` | agricultural | required; the plot area in qirats (1 qirat = 175.03 m², 24 qirats = 1 feddan ≈ 4,200 m²) |
-| `area_sqm` | all listings | for land with qirats it is derived server-side as `qirats × 175.03`, rounded to 2 decimals |
-| `frontage_m`, `depth_m` | both kinds | plot dimensions in metres |
+| `area_sqm` | all listings | for land with all four sides it is the approximate net area `mean(north, south) × mean(east, west)`; with qirats only it is `qirats × 175.03`; otherwise the submitted value |
+| `north_side_m`, `south_side_m` | both kinds | the bahri and qibli sides in metres; they may differ |
+| `east_side_m`, `west_side_m` | both kinds | the east and west sides in metres; they may differ |
 | `street_width_m` | both kinds | width of the adjacent street in metres |
 | `building_permit` | building plot | required; whether the plot has a permit |
 | `boundary_north`, `boundary_south`, `boundary_east`, `boundary_west` | both kinds | four free-text boundary lines (up to 200 characters each), e.g. the bahri/qibli side; shown as a "Boundaries" block on the detail page |
 | `negotiable` | all listings | price is negotiable; shown as a badge on the detail page |
 
-The API rejects land details on a non-land listing with `400 Invalid land details`, an agricultural plot without qirats or a building plot without permit status with `400` validation errors, and clears stale land fields — boundaries included — when a listing is saved as another property type. Land areas are shown in qirats (converted per locale) wherever a plot area is present.
+The API rejects land details on a non-land listing with `400 Invalid land details`, an agricultural plot without qirats or a building plot without permit status with `400` validation errors, and partial plot sides (some but not all of the four) with `400 Invalid land details`; it clears stale land fields — boundaries and sides included — when a listing is saved as another property type. The detail page shows agricultural land in qirats and in m², and draws a plot diagram with a double-headed arrow per side plus the approximate net area when all four sides are present.
 
 ## API
 
@@ -191,11 +193,11 @@ The backend follows the Warba repository layout: request/response payloads are L
 
 ## Verified
 
-- `flutter analyze` — no issues. `flutter test` — 9 widget tests pass (English LTR, Arabic RTL, market currency formatting, qirat formatting, one-language title fallback, governorate autocomplete filtering, register confirmation/phone validation, verify page asks for the emailed code, land boundary lines survive the API round-trip).
+- `flutter analyze` — no issues. `flutter test` — 11 widget tests pass (English LTR, Arabic RTL, market currency formatting, qirat formatting, one-language title fallback, governorate autocomplete filtering, register confirmation/phone validation, verify page asks for the emailed code, land sides and boundary lines survive the API round-trip, plot diagram renders four sides and the net area, listings without a photo use the bundled default cover).
 - `flutter build web --release` — succeeds and the bundle is served on port 8090.
-- Backend test suite (`Tests run: 10`) and migrations pass against PostgreSQL 18.7 (schema version 8): auth with verification (403 before verify, code from the mail log, wrong code, resend, duplicate email, repeated verification), active-country catalog and write rejection, search filters/sorting and favorite/ownership flags, image upload (JPEG/PNG/WebP with ids), image and video serving/deletion for MP4/WebM/MOV, one-language listings, validation and malformed-body errors, and the land-detail rules including the four boundary lines.
+- Backend test suite (`Tests run: 10`) and migrations pass against PostgreSQL 18.7 (schema version 11): auth with verification (403 before verify, code from the mail log, wrong code, resend, duplicate email, repeated verification), active-country catalog and write rejection, search filters/sorting and favorite/ownership flags, image upload (JPEG/PNG/WebP with ids), image and video serving/deletion for MP4/WebM/MOV, one-language listings, validation and malformed-body errors, and the land-detail rules including the four sides, the net-area calculation from asymmetric pairs, partial-side rejection and the four boundary lines.
 - Maven coordinates are `com.aqar:aqar-api` and every source file lives under `com.aqar.api`; no `kw.*` package remains.
-- Against the running backend: the location catalog returns Egypt only; registration returns `{email, verification_required}` with no code, login before verification is `403`, `POST /auth/verify` with the code from the log returns a JWT; a listing with an English-only title/description is accepted while an empty-title payload is `400 Missing title`; a Kuwait write is `400 Invalid location`; a land listing created with boundary lines returns them unchanged in its detail; image upload returns `{"id", "url"}`, the file is served and deleting the image removes it; video upload returns `/media/<uuid>.mp4`, the file is served as `video/mp4`, and deleting it clears `video_url`.
+- Against the running backend: the location catalog returns Egypt only; registration returns `{email, verification_required}` with no code, login before verification is `403`, `POST /auth/verify` with the code from the log returns a JWT; a listing with an English-only title/description is accepted while an empty-title payload is `400 Missing title`; a Kuwait write is `400 Invalid location`; a land listing created with four sides and boundary lines returns them unchanged in its detail with `area_sqm` equal to the net area; image upload returns `{"id", "url"}`, the file is served and deleting the image removes it; video upload returns `/media/<uuid>.mp4`, the file is served as `video/mp4`, and deleting it clears `video_url`.
 - The database holds 11 Egypt listings (9 homes, 2 land plots with boundaries) and one demo conversation; Kuwait has no listings.
 
 ## Quality gates

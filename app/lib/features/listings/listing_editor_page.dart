@@ -40,8 +40,10 @@ class _ListingEditorPageState extends ConsumerState<ListingEditorPage> {
   final _bedrooms = TextEditingController();
   final _bathrooms = TextEditingController();
   final _areaQirats = TextEditingController();
-  final _frontage = TextEditingController();
-  final _depth = TextEditingController();
+  final _eastSide = TextEditingController();
+  final _westSide = TextEditingController();
+  final _northSide = TextEditingController();
+  final _southSide = TextEditingController();
   final _streetWidth = TextEditingController();
   final _boundaryNorth = TextEditingController();
   final _boundarySouth = TextEditingController();
@@ -96,8 +98,10 @@ class _ListingEditorPageState extends ConsumerState<ListingEditorPage> {
     _bedrooms.dispose();
     _bathrooms.dispose();
     _areaQirats.dispose();
-    _frontage.dispose();
-    _depth.dispose();
+    _eastSide.dispose();
+    _westSide.dispose();
+    _northSide.dispose();
+    _southSide.dispose();
     _streetWidth.dispose();
     _boundaryNorth.dispose();
     _boundarySouth.dispose();
@@ -134,9 +138,14 @@ class _ListingEditorPageState extends ConsumerState<ListingEditorPage> {
             detail.areaSqm == null ? '' : _numberText(detail.areaSqm!);
         _areaQirats.text =
             detail.areaQirats == null ? '' : _numberText(detail.areaQirats!);
-        _frontage.text =
-            detail.frontageM == null ? '' : _numberText(detail.frontageM!);
-        _depth.text = detail.depthM == null ? '' : _numberText(detail.depthM!);
+        _eastSide.text =
+            detail.eastSideM == null ? '' : _numberText(detail.eastSideM!);
+        _westSide.text =
+            detail.westSideM == null ? '' : _numberText(detail.westSideM!);
+        _northSide.text =
+            detail.northSideM == null ? '' : _numberText(detail.northSideM!);
+        _southSide.text =
+            detail.southSideM == null ? '' : _numberText(detail.southSideM!);
         _streetWidth.text = detail.streetWidthM == null
             ? ''
             : _numberText(detail.streetWidthM!);
@@ -252,6 +261,18 @@ class _ListingEditorPageState extends ConsumerState<ListingEditorPage> {
       showMessageSnack(context, localizations.requiredField);
       return;
     }
+    if (isLand) {
+      final filledSides = [
+        _eastSide.text.trim(),
+        _westSide.text.trim(),
+        _northSide.text.trim(),
+        _southSide.text.trim(),
+      ].where((side) => side.isNotEmpty).length;
+      if (filledSides != 0 && filledSides != 4) {
+        showMessageSnack(context, localizations.plotSidesRequired);
+        return;
+      }
+    }
     final countryCode =
         ref.read(locationsProvider).value?.byCode(_countryCode)?.code ??
             _countryCode;
@@ -274,8 +295,10 @@ class _ListingEditorPageState extends ConsumerState<ListingEditorPage> {
         furnished: _furnished,
         landKind: isLand ? _landKind : null,
         areaQirats: isLand ? num.tryParse(_areaQirats.text.trim()) : null,
-        frontageM: isLand ? num.tryParse(_frontage.text.trim()) : null,
-        depthM: isLand ? num.tryParse(_depth.text.trim()) : null,
+        northSideM: isLand ? num.tryParse(_northSide.text.trim()) : null,
+        southSideM: isLand ? num.tryParse(_southSide.text.trim()) : null,
+        eastSideM: isLand ? num.tryParse(_eastSide.text.trim()) : null,
+        westSideM: isLand ? num.tryParse(_westSide.text.trim()) : null,
         streetWidthM: isLand ? num.tryParse(_streetWidth.text.trim()) : null,
         boundaryNorth: isLand ? _optionalText(_boundaryNorth) : null,
         boundarySouth: isLand ? _optionalText(_boundarySouth) : null,
@@ -526,6 +549,24 @@ class _ListingEditorPageState extends ConsumerState<ListingEditorPage> {
     }
     return null;
   }
+
+  Widget _sideField(
+    AppLocalizations localizations,
+    TextEditingController controller,
+    String label,
+  ) =>
+      TextFormField(
+        controller: controller,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        decoration: InputDecoration(labelText: label),
+        validator: (value) {
+          final text = value?.trim() ?? '';
+          if (text.isEmpty) {
+            return null;
+          }
+          return _optionalPositive(localizations, text);
+        },
+      );
 
   Widget _chipGroup<T>({
     required List<T> values,
@@ -837,42 +878,55 @@ class _ListingEditorPageState extends ConsumerState<ListingEditorPage> {
                   ),
                 ],
                 const SizedBox(height: 12),
+                Text(
+                  localizations.plotDimensions,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  localizations.plotSidesHint,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+                const SizedBox(height: 8),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: TextFormField(
-                        controller: _frontage,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration:
-                            InputDecoration(labelText: localizations.frontage),
-                        validator: (value) {
-                          final text = value?.trim() ?? '';
-                          if (text.isEmpty) {
-                            return null;
-                          }
-                          return _optionalPositive(localizations, text);
-                        },
+                      child: _sideField(
+                        localizations,
+                        _eastSide,
+                        localizations.sideEast,
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: TextFormField(
-                        controller: _depth,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration:
-                            InputDecoration(labelText: localizations.depth),
-                        validator: (value) {
-                          final text = value?.trim() ?? '';
-                          if (text.isEmpty) {
-                            return null;
-                          }
-                          return _optionalPositive(localizations, text);
-                        },
+                      child: _sideField(
+                        localizations,
+                        _westSide,
+                        localizations.sideWest,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: _sideField(
+                        localizations,
+                        _northSide,
+                        localizations.sideNorth,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _sideField(
+                        localizations,
+                        _southSide,
+                        localizations.sideSouth,
                       ),
                     ),
                   ],

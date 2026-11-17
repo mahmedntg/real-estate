@@ -230,9 +230,14 @@ public class PropertyService {
         property.setArea(areaCode == null ? null : locations.requireArea(governorate, normalizeCode(areaCode)));
         property.setPrice(request.getPrice());
         applyLand(property, request);
-        property.setAreaSqm(request.getAreaQirats() == null
-                ? request.getAreaSqm()
-                : Property.qiratsToSqm(request.getAreaQirats()));
+        BigDecimal netArea = property.netAreaSqm();
+        if (netArea != null) {
+            property.setAreaSqm(netArea);
+        } else if (request.getAreaQirats() != null) {
+            property.setAreaSqm(Property.qiratsToSqm(request.getAreaQirats()));
+        } else {
+            property.setAreaSqm(request.getAreaSqm());
+        }
         property.setBedrooms(request.getBedrooms());
         property.setBathrooms(request.getBathrooms());
         property.setFurnished(request.isFurnished());
@@ -244,7 +249,8 @@ public class PropertyService {
      * Applies or clears the land detail fields of a listing.
      *
      * <p>Land details are rejected on non-land listings and cleared there, agricultural land must
-     * carry an area in qirats and building plots must carry a building permit flag.
+     * carry an area in qirats, building plots must carry a building permit flag, and the four plot
+     * sides are either all present or all absent so the net area can be derived.
      *
      * @param property listing that receives the land details
      * @param request submitted listing values
@@ -252,8 +258,10 @@ public class PropertyService {
     private void applyLand(final Property property, final PropertyWriteRequest request) {
         boolean hasLandDetails = request.getLandKind() != null
                 || request.getAreaQirats() != null
-                || request.getFrontageM() != null
-                || request.getDepthM() != null
+                || request.getNorthSideM() != null
+                || request.getSouthSideM() != null
+                || request.getEastSideM() != null
+                || request.getWestSideM() != null
                 || request.getStreetWidthM() != null
                 || request.getBuildingPermit() != null
                 || request.getBoundaryNorth() != null
@@ -267,8 +275,10 @@ public class PropertyService {
             }
             property.setLandKind(null);
             property.setAreaQirats(null);
-            property.setFrontageM(null);
-            property.setDepthM(null);
+            property.setNorthSideM(null);
+            property.setSouthSideM(null);
+            property.setEastSideM(null);
+            property.setWestSideM(null);
             property.setStreetWidthM(null);
             property.setBuildingPermit(null);
             property.setBoundaryNorth(null);
@@ -277,6 +287,18 @@ public class PropertyService {
             property.setBoundaryWest(null);
             property.setNegotiable(false);
             return;
+        }
+        boolean anySide = request.getNorthSideM() != null
+                || request.getSouthSideM() != null
+                || request.getEastSideM() != null
+                || request.getWestSideM() != null;
+        boolean allSides = request.getNorthSideM() != null
+                && request.getSouthSideM() != null
+                && request.getEastSideM() != null
+                && request.getWestSideM() != null;
+        if (anySide && !allSides) {
+            throw ApiException.badRequest("Invalid land details",
+                    "Provide all four plot sides or none");
         }
         if (request.getLandKind() == LandKind.AGRICULTURAL && request.getAreaQirats() == null) {
             throw ApiException.badRequest("Invalid land details",
@@ -288,8 +310,10 @@ public class PropertyService {
         }
         property.setLandKind(request.getLandKind());
         property.setAreaQirats(request.getAreaQirats());
-        property.setFrontageM(request.getFrontageM());
-        property.setDepthM(request.getDepthM());
+        property.setNorthSideM(request.getNorthSideM());
+        property.setSouthSideM(request.getSouthSideM());
+        property.setEastSideM(request.getEastSideM());
+        property.setWestSideM(request.getWestSideM());
         property.setStreetWidthM(request.getStreetWidthM());
         property.setBuildingPermit(request.getBuildingPermit());
         property.setBoundaryNorth(normalize(request.getBoundaryNorth()));

@@ -98,7 +98,7 @@ class AqarApi {
         final response = await _dio.post(
           '/auth/register',
           data: {
-            'fullName': fullName,
+            'full_name': fullName,
             'email': email,
             'phone': (phone == null || phone.trim().isEmpty) ? null : phone.trim(),
             'password': password,

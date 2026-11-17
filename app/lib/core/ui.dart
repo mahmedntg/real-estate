@@ -3,6 +3,8 @@ import 'package:material_ui/material_ui.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'errors.dart';
 
+const String defaultListingImage = 'assets/images/default_listing.jpg';
+
 class AppNetworkImage extends StatelessWidget {
   const AppNetworkImage(
     this.url, {
@@ -20,7 +22,7 @@ class AppNetworkImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (url.isEmpty) {
-      return _Placeholder(width: width, height: height);
+      return _DefaultImage(fit: fit, width: width, height: height);
     }
     return Image.network(
       url,
@@ -28,30 +30,28 @@ class AppNetworkImage extends StatelessWidget {
       width: width,
       height: height,
       errorBuilder: (context, error, stackTrace) =>
-          _Placeholder(width: width, height: height),
-      loadingBuilder: (context, child, progress) =>
-          progress == null ? child : _Placeholder(width: width, height: height),
+          _DefaultImage(fit: fit, width: width, height: height),
+      loadingBuilder: (context, child, progress) => progress == null
+          ? child
+          : _DefaultImage(fit: fit, width: width, height: height),
     );
   }
 }
 
-class _Placeholder extends StatelessWidget {
-  const _Placeholder({this.width, this.height});
+class _DefaultImage extends StatelessWidget {
+  const _DefaultImage({required this.fit, this.width, this.height});
 
+  final BoxFit fit;
   final double? width;
   final double? height;
 
   @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      width: width,
-      height: height,
-      color: colors.surfaceContainerHighest,
-      alignment: Alignment.center,
-      child: Icon(Icons.apartment_outlined, color: colors.onSurfaceVariant),
-    );
-  }
+  Widget build(BuildContext context) => Image.asset(
+        defaultListingImage,
+        fit: fit,
+        width: width,
+        height: height,
+      );
 }
 
 String errorText(BuildContext context, Object? error) {

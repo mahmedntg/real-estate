@@ -169,16 +169,29 @@
     }
   },
   "feddanHint": "1 feddan = 24 qirats ≈ 4,200 m²",
-  "frontage": "Frontage (m)",
-  "depth": "Depth (m)",
-  "streetWidth": "Street width (m)",
-  "dimensionsShort": "{frontage} × {depth} m",
-  "@dimensionsShort": {
+  "plotDimensions": "Plot dimensions",
+  "plotSidesHint": "Enter all four sides, or leave them empty",
+  "plotSidesRequired": "Enter all four plot sides, or leave them empty",
+  "sideEast": "East (m)",
+  "sideWest": "West (m)",
+  "sideNorth": "North (m)",
+  "sideSouth": "South (m)",
+  "plotSideValue": "{label}: {value} m",
+  "@plotSideValue": {
     "placeholders": {
-      "frontage": {
+      "label": {
         "type": "String"
       },
-      "depth": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "streetWidth": "Street width (m)",
+  "netAreaShort": "≈ {value} m² net",
+  "@netAreaShort": {
+    "placeholders": {
+      "value": {
         "type": "String"
       }
     }

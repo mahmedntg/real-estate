@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -300,8 +301,7 @@ class AqarApiIntegrationTest {
                 .andExpect(jsonPath("$.land_kind").value("AGRICULTURAL"))
                 .andExpect(jsonPath("$.area_qirats").value(10.0))
                 .andExpect(jsonPath("$.area_sqm").value(1750.3))
-                .andExpect(jsonPath("$.frontage_m").value(60.0))
-                .andExpect(jsonPath("$.depth_m").value(29.17))
+                .andExpect(jsonPath("$.south_side_m").value(nullValue()))
                 .andExpect(jsonPath("$.street_width_m").value(8.0))
                 .andExpect(jsonPath("$.boundary_north").value("Nile irrigation canal"))
                 .andExpect(jsonPath("$.boundary_south").value("Neighbouring farm plot"))
@@ -327,6 +327,26 @@ class AqarApiIntegrationTest {
                 .andExpect(jsonPath("$.area_sqm").value(500.0))
                 .andExpect(jsonPath("$.boundary_north").value("Nile irrigation canal"))
                 .andExpect(jsonPath("$.negotiable").value(true));
+
+        mockMvc.perform(post("/api/v1/properties")
+                        .header("Authorization", bearer(ownerToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(landBody("Four-sided plot " + UUID.randomUUID(), "LAND", "BUILDING",
+                                null, true, "50.00", "60.00", "30.00", "26.00")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.north_side_m").value(50.0))
+                .andExpect(jsonPath("$.south_side_m").value(60.0))
+                .andExpect(jsonPath("$.east_side_m").value(30.0))
+                .andExpect(jsonPath("$.west_side_m").value(26.0))
+                .andExpect(jsonPath("$.area_sqm").value(1540.0));
+
+        mockMvc.perform(post("/api/v1/properties")
+                        .header("Authorization", bearer(ownerToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(landBody("Partial sides " + UUID.randomUUID(), "LAND", "BUILDING",
+                                null, true, "60.00", "50.00", null, null)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Invalid land details"));
 
         mockMvc.perform(post("/api/v1/properties")
                         .header("Authorization", bearer(ownerToken))
@@ -885,6 +905,13 @@ class AqarApiIntegrationTest {
 
     private String landBody(String title, String propertyType, String landKind,
                             String areaQirats, Boolean buildingPermit) {
+        return landBody(title, propertyType, landKind, areaQirats, buildingPermit,
+                null, null, null, null);
+    }
+
+    private String landBody(String title, String propertyType, String landKind,
+                            String areaQirats, Boolean buildingPermit, String northSideM,
+                            String southSideM, String eastSideM, String westSideM) {
         return """
                 {
                   "title_en": "%s",
@@ -901,8 +928,10 @@ class AqarApiIntegrationTest {
                   "furnished": false,
                   "land_kind": "%s",
                   "area_qirats": %s,
-                  "frontage_m": 60.00,
-                  "depth_m": 29.17,
+                  "north_side_m": %s,
+                  "south_side_m": %s,
+                  "east_side_m": %s,
+                  "west_side_m": %s,
                   "street_width_m": 8.00,
                   "building_permit": %s,
                   "boundary_north": "Nile irrigation canal",
@@ -913,6 +942,10 @@ class AqarApiIntegrationTest {
                 }
                 """.formatted(title, propertyType, landKind,
                 areaQirats == null ? "null" : areaQirats,
+                northSideM == null ? "null" : northSideM,
+                southSideM == null ? "null" : southSideM,
+                eastSideM == null ? "null" : eastSideM,
+                westSideM == null ? "null" : westSideM,
                 buildingPermit == null ? "null" : buildingPermit);
     }
 

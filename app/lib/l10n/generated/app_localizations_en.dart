@@ -407,17 +407,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feddanHint => '1 feddan = 24 qirats ≈ 4,200 m²';
 
   @override
-  String get frontage => 'Frontage (m)';
+  String get plotDimensions => 'Plot dimensions';
 
   @override
-  String get depth => 'Depth (m)';
+  String get plotSidesHint => 'Enter all four sides, or leave them empty';
+
+  @override
+  String get plotSidesRequired =>
+      'Enter all four plot sides, or leave them empty';
+
+  @override
+  String get sideEast => 'East (m)';
+
+  @override
+  String get sideWest => 'West (m)';
+
+  @override
+  String get sideNorth => 'North (m)';
+
+  @override
+  String get sideSouth => 'South (m)';
+
+  @override
+  String plotSideValue(String label, String value) {
+    return '$label: $value m';
+  }
 
   @override
   String get streetWidth => 'Street width (m)';
 
   @override
-  String dimensionsShort(String frontage, String depth) {
-    return '$frontage × $depth m';
+  String netAreaShort(String value) {
+    return '≈ $value m² net';
   }
 
   @override

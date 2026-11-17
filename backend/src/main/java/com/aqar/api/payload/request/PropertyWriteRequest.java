@@ -91,11 +91,19 @@ public class PropertyWriteRequest {
 
     @DecimalMin("0.01")
     @Digits(integer = 4, fraction = 2)
-    private BigDecimal frontageM;
+    private BigDecimal northSideM;
 
     @DecimalMin("0.01")
     @Digits(integer = 4, fraction = 2)
-    private BigDecimal depthM;
+    private BigDecimal southSideM;
+
+    @DecimalMin("0.01")
+    @Digits(integer = 4, fraction = 2)
+    private BigDecimal eastSideM;
+
+    @DecimalMin("0.01")
+    @Digits(integer = 4, fraction = 2)
+    private BigDecimal westSideM;
 
     @DecimalMin("0.01")
     @Digits(integer = 3, fraction = 2)
